@@ -31,7 +31,7 @@ export async function generateBannerImage(prompt) {
     prompt: `${prompt} -- aspect ratio of 16:9 landscape mode`,
     width: 1280,
     height: 720,
-    model: "flux",
+    model: "zimage",
     seed: 42,
   });
 }
@@ -48,7 +48,7 @@ export async function createCombinedVisualPrompt(topics) {
 
   const combined = Array.isArray(topics) ? topics.join(" | ") : topics;
   return chatCompletion({
-    model: "openai-fast",
+    model: "gemini-fast",
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: combined },
@@ -68,7 +68,7 @@ export async function generateThumbnailImage(prompt) {
     prompt: `${prompt} -- vector digital art -- colorful -- 1:1 icon style`,
     width: 512,
     height: 512,
-    model: "flux",
+    model: "zimage",
     seed: 42,
   });
 }
@@ -79,7 +79,7 @@ export async function generateThumbnailImage(prompt) {
 export async function createCombinedNewsSummary(topics) {
   const combined = Array.isArray(topics) ? topics.join(" | ") : topics;
   return chatCompletion({
-    model: "openai-fast",
+    model: "gemini-fast",
     messages: [
       {
         role: "system",

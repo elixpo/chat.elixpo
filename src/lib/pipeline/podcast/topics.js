@@ -62,7 +62,7 @@ export async function fetchPodcastTopics() {
 export async function pickPodcastTopic(topics) {
   console.log("🎯 Picking best podcast topic...");
   const raw = await chatCompletion({
-    model: "openai",
+    model: "gemini-fast",
     messages: [
       {
         role: "system",
