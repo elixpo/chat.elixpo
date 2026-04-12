@@ -15,22 +15,24 @@
     "pipeline:podcast": "node src/lib/pipeline/podcast/index.js"
   },
   "dependencies": {
-    "next": "^15.3.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
     "cloudinary": "^2.6.0",
     "dotenv": "^16.4.0",
-    "marked": "^15.0.0"
+    "framer-motion": "^12.38.0",
+    "gsap": "^3.14.2",
+    "marked": "^15.0.0",
+    "next": "^15.3.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {
-    "@opennextjs/cloudflare": "^1.0.0",
     "@cloudflare/workers-types": "^4.20250327.0",
-    "typescript": "^5.8.0",
+    "@opennextjs/cloudflare": "^1.0.0",
+    "@tailwindcss/postcss": "^4.1.0",
     "@types/node": "^22.0.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "tailwindcss": "^4.1.0",
-    "@tailwindcss/postcss": "^4.1.0",
+    "typescript": "^5.8.0",
     "wrangler": "^4.14.0"
   }
 }
