@@ -1,4 +1,5 @@
 {
   "news": "running",
-  "podcast": "running"
+  "podcast": "failed",
+  "podcast_error": "cloud_name is disabled"
 }
