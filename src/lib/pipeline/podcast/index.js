@@ -129,9 +129,9 @@ export async function runPodcastPipeline(db) {
 
     await db
       .prepare(
-        "INSERT OR REPLACE INTO podcasts (id, podcast_name, podcast_audio_url, podcast_music_url, podcast_thumbnail_url, podcast_banner_url, topic_source) VALUES (?, ?, ?, ?, ?, ?, ?)"
+        "INSERT OR REPLACE INTO podcasts (id, podcast_name, podcast_audio_url, podcast_music_url, podcast_transcript_url, podcast_thumbnail_url, podcast_banner_url, topic_source) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
       )
-      .bind(podcastId, topicName, backup.audio_url, backup.music_url || "", backup.thumbnail_url, backup.banner_url, topicSource)
+      .bind(podcastId, topicName, backup.audio_url, backup.music_url || "", backup.transcript_url || "", backup.thumbnail_url, backup.banner_url, topicSource)
       .run();
 
     // Cleanup old podcast

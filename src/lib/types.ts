@@ -1,5 +1,6 @@
 export interface NewsItem {
   audio_url: string;
+  transcript_url: string;
   topic: string;
   image_url: string;
   source_link: string;
@@ -22,6 +23,7 @@ export interface Podcast {
   podcast_name: string;
   podcast_audio_url: string;
   podcast_music_url: string;
+  podcast_transcript_url: string;
   podcast_thumbnail_url: string;
   podcast_banner_url: string;
   topic_source: string;
