@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { generateAudio, transcribeAudio, generateMusic } from "../pollinations.js";
+import { generateAudio, transcribeAudio } from "../pollinations.js";
 import { compressAudio } from "../compress.js";
 
 const DEVELOPER_PROMPT =
@@ -43,20 +43,3 @@ export async function generatePodcastSpeech(script, voice = "shimmer") {
   return { buffer, transcript };
 }
 
-/**
- * Generate background music via acestep.
- * Saves to tmp/.
- */
-export async function generatePodcastMusic(topicName, duration = 60) {
-  if (!fs.existsSync(TMP)) fs.mkdirSync(TMP, { recursive: true });
-
-  console.log("🎵 Generating background music (acestep)...");
-  const prompt = `Calm, upbeat, lo-fi podcast background music inspired by the theme: ${topicName}. Soft beats, ambient, no vocals.`;
-  const buffer = await generateMusic({ prompt, duration });
-
-  const tmpPath = path.join(TMP, "podcast_music.mp3");
-  fs.writeFileSync(tmpPath, buffer);
-  console.log(`✅ Music saved → ${tmpPath} (${buffer.length} bytes)`);
-
-  return buffer;
-}
