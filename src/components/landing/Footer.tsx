@@ -24,7 +24,7 @@ export default function Footer() {
                 Elixpo Chat
               </span>
             </Link>
-            <p className="text-sm leading-relaxed text-neutral-500">
+            <p className="text-sm leading-relaxed text-neutral-400">
               AI-powered conversations, news, podcasts, and weather. Everything you need to stay informed, in one place.
             </p>
           </div>
@@ -64,16 +64,12 @@ export default function Footer() {
 
         {/* Divider */}
         <div className="border-t border-neutral-800 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-neutral-600">
+          <p className="text-xs text-neutral-500">
             &copy; {new Date().getFullYear()} Elixpo Chat. All rights reserved.
           </p>
-          <div className="flex items-center gap-6 text-xs text-neutral-600">
-            <span>Built with Pollinations AI</span>
-            <span className="w-1 h-1 rounded-full bg-neutral-700" />
-            <span>Hosted on Cloudflare</span>
-            <span className="w-1 h-1 rounded-full bg-neutral-700" />
-            <span>Next.js 15</span>
-          </div>
+          <p className="text-xs text-neutral-600">
+            Powered by Pollinations AI &middot; Hosted on Cloudflare
+          </p>
         </div>
       </motion.div>
     </footer>
