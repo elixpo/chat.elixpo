@@ -143,7 +143,8 @@ export default function NewsPage() {
   const pct = duration > 0 ? (currentTime / duration) * 100 : 0;
   const currentItem = items[currentIdx];
   const categoryColor = CATEGORY_COLORS[currentItem?.category] || "#f59e0b";
-  const displayImage = currentItem?.image_url || "";
+  const bannerImage = currentItem?.image_url || "";
+  const thumbnailImage = currentItem?.thumbnail_url || "";
   const sourceDomain = (() => { try { return new URL(currentItem?.source_link || "").hostname.replace(/^www\./, ""); } catch { return ""; } })();
   const faviconUrl = sourceDomain ? `https://www.google.com/s2/favicons?domain=${sourceDomain}&sz=64` : "";
 
@@ -154,9 +155,9 @@ export default function NewsPage() {
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
       </Link>
 
-      {/* ═══ FULL-SCREEN BACKGROUND IMAGE ═══ */}
-      {displayImage && (
-        <div className="absolute inset-0 z-0 bg-cover bg-center transition-all duration-700" style={{ backgroundImage: `url(${displayImage})` }} />
+      {/* ═══ FULL-SCREEN BACKGROUND — banner image ═══ */}
+      {bannerImage && (
+        <div className="absolute inset-0 z-0 bg-cover bg-center transition-all duration-700" style={{ backgroundImage: `url(${bannerImage})` }} />
       )}
       {/* Gradient overlay */}
       <div className="absolute inset-0 z-[1]" style={{
@@ -207,11 +208,11 @@ export default function NewsPage() {
             {/* Title + Source row */}
             <div className="flex items-center gap-4 mb-4">
               {/* Mini thumbnail */}
-              {(currentItem?.thumbnail_url || displayImage) && (
-                <div className="w-12 h-12 rounded-xl bg-cover bg-center flex-shrink-0 border border-white/10 shadow-lg" style={{ backgroundImage: `url(${currentItem?.thumbnail_url || displayImage})` }} />
+              {(thumbnailImage || bannerImage) && (
+                <div className="w-12 h-12 rounded-xl bg-cover bg-center flex-shrink-0 border border-white/10 shadow-lg" style={{ backgroundImage: `url(${thumbnailImage || bannerImage})` }} />
               )}
               <div className="flex-1 min-w-0">
-                <h2 className="text-sm font-bold text-white/90 truncate">{headline}</h2>
+                <h2 className="text-sm font-bold text-white/90 truncate">{currentItem?.topic || headline}</h2>
                 <div className="flex items-center gap-1.5">
                   {faviconUrl && sourceDomain ? (
                     <a href={currentItem?.source_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 group">
