@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { generateAudio, transcribeAudio } from "../pollinations.js";
+import { compressAudio } from "../compress.js";
 
 const DEVELOPER_PROMPT =
   "You are a charismatic news host narrating a story for Elixpo Daily. " +
@@ -23,10 +24,11 @@ export async function generateVoiceover(script, newsIndex, voice = "shimmer") {
 
   console.log(`🎙️ Generating voiceover for topic ${newsIndex} (${voice})...`);
   const base64 = await generateAudio({ script, voice, developerPrompt: DEVELOPER_PROMPT });
-  const buffer = Buffer.from(base64, "base64");
+  const rawBuffer = Buffer.from(base64, "base64");
 
-  // Save to tmp
-  const tmpPath = path.join(TMP, `news_${newsIndex}.wav`);
+  // Compress WAV → MP3 and save to tmp
+  const buffer = compressAudio(rawBuffer, `news_${newsIndex}`);
+  const tmpPath = path.join(TMP, `news_${newsIndex}.mp3`);
   fs.writeFileSync(tmpPath, buffer);
   console.log(`✅ Voiceover saved → ${tmpPath} (${buffer.length} bytes)`);
 

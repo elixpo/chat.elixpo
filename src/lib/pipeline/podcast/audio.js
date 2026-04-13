@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { generateAudio, transcribeAudio, generateMusic } from "../pollinations.js";
+import { compressAudio } from "../compress.js";
 
 const DEVELOPER_PROMPT =
   "You are a charismatic, confident podcast host narrating a story your listeners NEED to hear. " +
