@@ -5,6 +5,7 @@ import Hero from "@/components/landing/Hero";
 import FeatureCards from "@/components/landing/FeatureCards";
 import ShowcaseBlock from "@/components/landing/ShowcaseBlock";
 import ChatShowcase from "@/components/landing/ChatShowcase";
+import FeaturedContent from "@/components/landing/FeaturedContent";
 import Footer from "@/components/landing/Footer";
 
 const DAILY_SNIPPET = `import { ElixpoDaily } from "@elixpo/components";
