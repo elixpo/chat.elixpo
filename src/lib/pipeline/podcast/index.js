@@ -2,7 +2,7 @@ import crypto from "crypto";
 import fs from "fs";
 import path from "path";
 
-import { uploadBuffer, deleteFolder } from "../storage.js";
+import { uploadBuffer } from "../storage.js";
 import { fetchPodcastTopics, pickPodcastTopic } from "./topics.js";
 import { getLatestInfo, generatePodcastScript } from "./creator.js";
 import { generatePodcastSpeech } from "./audio.js";
@@ -80,7 +80,7 @@ export async function runPodcastPipeline(db) {
     console.log(`📌 Topic stored: ${topicName} | ID: ${podcastId}`);
   }
 
-  const folder = `${CLOUDINARY_ROOT}/${podcastId}`;
+  const folder = CLOUDINARY_ROOT; // Fixed path — overwrites in-place every run
 
   // Script generation
   if (backup.status === "topic_stored") {
@@ -137,14 +137,7 @@ export async function runPodcastPipeline(db) {
       .bind(podcastId, topicName, backup.audio_url, backup.music_url || "", backup.transcript_url || "", backup.thumbnail_url, backup.banner_url, topicSource)
       .run();
 
-    // Cleanup old podcast
-    const prevStats = await db.prepare("SELECT data FROM gen_stats WHERE key = ?").bind("podcast").first();
-    if (prevStats) {
-      const prev = JSON.parse(prevStats.data);
-      if (prev.latestPodcastID && prev.latestPodcastID !== podcastId) {
-        await deleteFolder(`${CLOUDINARY_ROOT}/${prev.latestPodcastID}`);
-      }
-    }
+    // No need to delete old — fixed paths overwrite in-place
 
     const statsData = JSON.stringify({
       latestPodcastID: podcastId,
