@@ -65,7 +65,7 @@ export default function FeaturedContent() {
       <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* News card */}
         {news && (
-          <Link href="/daily" className="featured-card group block rounded-3xl overflow-hidden border border-neutral-200 hover:border-neutral-300 transition-all hover:shadow-2xl hover:shadow-neutral-200/60 opacity-0">
+          <Link href="/news" className="featured-card group block rounded-3xl overflow-hidden border border-neutral-200 hover:border-neutral-300 transition-all hover:shadow-2xl hover:shadow-neutral-200/60 opacity-0">
             <div className="relative h-[200px] bg-cover bg-center" style={{ backgroundImage: news.latestNewsThumbnail ? `url(${news.latestNewsThumbnail})` : undefined, backgroundColor: "#1E2538" }}>
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
               <div className="absolute bottom-4 left-5 right-5">

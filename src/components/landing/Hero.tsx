@@ -111,7 +111,7 @@ export default function Hero() {
           Explore Features
         </a>
         <a
-          href="/daily"
+          href="/news"
           className="px-8 py-3.5 rounded-full text-sm font-semibold bg-white text-neutral-900 border border-neutral-300 hover:border-neutral-400 transition-all"
         >
           Listen Now

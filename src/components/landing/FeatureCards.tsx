@@ -12,7 +12,7 @@ const FEATURES = [
     title: "Elixpo Daily",
     description:
       "5 AI-curated news stories narrated with alternating voices, smooth transitions, and stunning visuals. Your morning briefing, reimagined.",
-    href: "/daily",
+    href: "/news",
     gradient: "from-amber-400 to-orange-500",
     icon: (
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
