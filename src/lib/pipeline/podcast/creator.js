@@ -61,7 +61,7 @@ function cleanScript(raw) {
     .trim();
 }
 
-export async function generatePodcastScript(infoMarkdown, topicName) {
+export async function generatePodcastScript(infoMarkdown, topicName, topicSource = "") {
   console.log("⏳ Generating podcast script...");
   const now = new Date().toISOString();
   const systemPrompt =
@@ -73,11 +73,11 @@ export async function generatePodcastScript(infoMarkdown, topicName) {
     `  [FEMALE] before ${PODCAST_HOST_FEMALE}'s lines\n` +
     `  [MALE] before ${PODCAST_HOST_MALE}'s lines\n` +
     "  [IMAGE:description] — exactly 5 of these, 15-20 word visual scene descriptions\n\n" +
-    "OPENING (CRITICAL — follow this structure exactly):\n" +
-    `- The opening host says: "Hey everyone, welcome to the Elixpo Podcast! I'm [name]. Today we're diving into [TOPIC NAME] — [one sentence explaining what the topic is and why it matters]. And with me to break it all down is [other host's name]!"\n` +
-    `- The other host replies with just: "Hey! Yeah this is a big one, let's get into it." — ONE line, no repeating the welcome or the topic.\n` +
-    "- This gives the listener CONTEXT about what the episode is about before the conversation begins.\n" +
-    "- Vary who opens — sometimes Lix, sometimes Liza.\n\n" +
+    "OPENING (CRITICAL — follow this structure EXACTLY):\n" +
+    `- The opening host says something like: "Hello there, I'm ${PODCAST_HOST_FEMALE}, and we are accompanied today by our co-host ${PODCAST_HOST_MALE}. Today on the Elixpo Podcast we'll be taking on '${topicName}'${topicSource ? `, sourced from ${topicSource}` : ""}. It's ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}, and this one's a fascinating story. Let's get into it!"\n` +
+    `- The co-host responds with ONE short natural line — "Hey everyone! Yeah, this is a good one, let's go." — then they dive straight into the topic.\n` +
+    "- Vary who opens — sometimes Lix opens, sometimes Liza.\n" +
+    "- The opening MUST mention: both host names, the topic name, the source, and the date. This gives listeners full context.\n\n" +
     "CONVERSATION RULES:\n" +
     "- FAST-PACED conversation. They talk quickly, jump between points, build on each other.\n" +
     "- After the opening, NEVER greet again. No 'hey there', no 'welcome back', no 'okay [name]' as a greeting. Start every turn by reacting to what the other just said or adding new info.\n" +

@@ -76,7 +76,7 @@ export async function runPodcastPipeline(db) {
   if (backup.status === "topic_stored") {
     console.log("📝 Generating script...");
     const info = await getLatestInfo(topicName);
-    const result = await generatePodcastScript(info, topicName);
+    const result = await generatePodcastScript(info, topicName, topicSource);
     sections = result.sections;
     backup.script = result.script;
     backup.sections = sections;
