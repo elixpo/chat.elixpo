@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { generateAudio, transcribeAudio } from "../pollinations.js";
 import { compressAudio } from "../compress.js";
-import { NEWS_TTS_PROMPT } from "../config.js";
+import { NEWS_TTS_PROMPT } from "../prompts.js";
 
 export async function generateVoiceover(script, newsIndex, voice = "shimmer") {
   const itemDir = path.resolve(`tmp/news/item_${newsIndex}`);
