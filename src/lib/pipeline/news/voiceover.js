@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import { generateAudio, transcribeAudio } from "../pollinations.js";
 
 const DEVELOPER_PROMPT =
@@ -10,22 +12,28 @@ const DEVELOPER_PROMPT =
   "Think of your favorite news podcast host — sharp, relatable, clear, and engaging. Not a monotone anchor. Not a screaming YouTuber. Just a great storyteller who happens to be delivering the news. " +
   "No robotic reading. No rushing through content. No sleepy delivery. Every sentence should land.";
 
+const TMP = path.resolve("tmp");
+
 /**
  * Generate voiceover audio + transcript for a news script.
- * @param {string} script - The news script text
- * @param {number} newsIndex - Index of the news item
- * @param {string} voice - "shimmer" (female) or "ash" (male)
- * @returns {{ buffer: Buffer, transcript: object }} WAV audio buffer + whisper transcript
+ * Saves audio to tmp/ before transcribing.
  */
 export async function generateVoiceover(script, newsIndex, voice = "shimmer") {
+  if (!fs.existsSync(TMP)) fs.mkdirSync(TMP, { recursive: true });
+
   console.log(`🎙️ Generating voiceover for topic ${newsIndex} (${voice})...`);
   const base64 = await generateAudio({ script, voice, developerPrompt: DEVELOPER_PROMPT });
   const buffer = Buffer.from(base64, "base64");
-  console.log(`✅ Voiceover generated for topic ${newsIndex}`);
 
+  // Save to tmp
+  const tmpPath = path.join(TMP, `news_${newsIndex}.wav`);
+  fs.writeFileSync(tmpPath, buffer);
+  console.log(`✅ Voiceover saved → ${tmpPath} (${buffer.length} bytes)`);
+
+  // Transcribe from the saved buffer (chunked internally)
   console.log(`📝 Transcribing audio for topic ${newsIndex}...`);
   const transcript = await transcribeAudio(buffer, `news${newsIndex}.wav`);
-  console.log(`✅ Transcript generated for topic ${newsIndex}`);
+  console.log(`✅ Transcript: ${transcript.segments?.length || 0} segments`);
 
   return { buffer, transcript };
 }

@@ -1,4 +1,6 @@
-import { generateAudio, transcribeAudio } from "../pollinations.js";
+import fs from "fs";
+import path from "path";
+import { generateAudio, transcribeAudio, generateMusic } from "../pollinations.js";
 
 const DEVELOPER_PROMPT =
   "You are a charismatic, confident podcast host narrating a story your listeners NEED to hear. " +
@@ -12,19 +14,47 @@ const DEVELOPER_PROMPT =
   "Think of the best storytelling podcasts — they breathe, they pause, they feel. That's you. " +
   "No monotone. No rushing. No robotic reading. No skipping. Deliver every word with breath, feeling, and conviction.";
 
+const TMP = path.resolve("tmp");
+
 /**
  * Generate podcast speech + transcript.
+ * Saves audio to tmp/ before transcribing.
  * @returns {{ buffer: Buffer, transcript: object }}
  */
 export async function generatePodcastSpeech(script, voice = "shimmer") {
+  if (!fs.existsSync(TMP)) fs.mkdirSync(TMP, { recursive: true });
+
   console.log("🎙️ Generating podcast speech (openai-audio)...");
   const base64 = await generateAudio({ script, voice, developerPrompt: DEVELOPER_PROMPT });
   const buffer = Buffer.from(base64, "base64");
-  console.log("✅ Podcast speech generated.");
 
+  // Save to tmp
+  const tmpPath = path.join(TMP, "podcast_speech.wav");
+  fs.writeFileSync(tmpPath, buffer);
+  console.log(`✅ Podcast speech saved → ${tmpPath} (${buffer.length} bytes)`);
+
+  // Transcribe (chunked internally if needed)
   console.log("📝 Transcribing podcast audio...");
   const transcript = await transcribeAudio(buffer, "podcast.wav");
-  console.log("✅ Podcast transcript generated.");
+  console.log(`✅ Transcript: ${transcript.segments?.length || 0} segments`);
 
   return { buffer, transcript };
+}
+
+/**
+ * Generate background music via acestep.
+ * Saves to tmp/.
+ */
+export async function generatePodcastMusic(topicName, duration = 60) {
+  if (!fs.existsSync(TMP)) fs.mkdirSync(TMP, { recursive: true });
+
+  console.log("🎵 Generating background music (acestep)...");
+  const prompt = `Calm, upbeat, lo-fi podcast background music inspired by the theme: ${topicName}. Soft beats, ambient, no vocals.`;
+  const buffer = await generateMusic({ prompt, duration });
+
+  const tmpPath = path.join(TMP, "podcast_music.mp3");
+  fs.writeFileSync(tmpPath, buffer);
+  console.log(`✅ Music saved → ${tmpPath} (${buffer.length} bytes)`);
+
+  return buffer;
 }
