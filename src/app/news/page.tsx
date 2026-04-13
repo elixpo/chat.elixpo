@@ -35,6 +35,7 @@ export default function NewsPage() {
       const newsItems: NewsItem[] = Array.isArray(data.items) ? data.items : Object.values(data.items);
       setItems(newsItems);
       audioRefs.current = newsItems.map((item) => {
+        if (!item.audio_url) return null as unknown as HTMLAudioElement;
         const audio = new Audio(item.audio_url);
         audio.preload = "auto";
         return audio;
@@ -122,7 +123,7 @@ export default function NewsPage() {
     };
   }, [currentIdx, items, updateGradient]);
 
-  const togglePlay = () => { const a = audioRefs.current[currentIdx]; if (a) a.paused ? a.play() : a.pause(); };
+  const togglePlay = () => { const a = audioRefs.current[currentIdx]; if (a?.src) a.paused ? a.play() : a.pause(); };
   const switchTrack = (idx: number) => {
     if (idx < 0 || idx >= items.length || idx === currentIdx) return;
     audioRefs.current[currentIdx].pause();
@@ -205,9 +206,9 @@ export default function NewsPage() {
           <div className="max-w-lg mx-auto rounded-3xl px-6 py-5 bg-black/30 backdrop-blur-md border border-white/[0.06]">
             {/* Title + Source row */}
             <div className="flex items-center gap-4 mb-4">
-              {/* Mini banner */}
-              {displayImage && (
-                <div className="w-14 h-10 rounded-lg bg-cover bg-center flex-shrink-0 border border-white/10 shadow-lg" style={{ backgroundImage: `url(${displayImage})` }} />
+              {/* Mini thumbnail */}
+              {(currentItem?.thumbnail_url || displayImage) && (
+                <div className="w-12 h-12 rounded-xl bg-cover bg-center flex-shrink-0 border border-white/10 shadow-lg" style={{ backgroundImage: `url(${currentItem?.thumbnail_url || displayImage})` }} />
               )}
               <div className="flex-1 min-w-0">
                 <h2 className="text-sm font-bold text-white/90 truncate">{headline}</h2>

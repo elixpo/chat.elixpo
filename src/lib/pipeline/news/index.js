@@ -101,7 +101,27 @@ export async function runNewsPipeline(db) {
     item.topic = item.topic || topic;
     item.category = item.category || category;
 
-    if (item.status === "complete") {
+    // Skip if fully complete (has audio). Allow re-entry for missing banner.
+    if (item.status === "complete" && item.audio_url) {
+      // Retry banner if it's missing
+      if (!item.image_url) {
+        console.log(`🔄 Retrying banner for [${category}]: ${topic}`);
+        try {
+          const prompt = await generateVisualPrompt(item.topic);
+          const rawImg = await safeRetry(() => generateBannerImage(prompt));
+          const imgBuffer = compressBanner(rawImg, path.join(itemDir, "banner"));
+          fs.writeFileSync(path.join(itemDir, "banner.jpg"), imgBuffer);
+          const gc = extractDominantColor(imgBuffer, path.join(itemDir, "banner_color"));
+          const imageUrl = await uploadBuffer(imgBuffer, `${CLOUDINARY_ROOT}/item_${index}`, "banner");
+          item.image_url = imageUrl;
+          item.gradient_color = gc;
+          items[index] = item;
+          logBackup(backup);
+          console.log(`✅ Banner recovered for topic ${index}`);
+        } catch (err) {
+          console.warn(`⚠️ Banner retry failed for topic ${index}: ${err.message}`);
+        }
+      }
       console.log(`✅ Skipping complete [${category}]: ${topic}`);
       continue;
     }
@@ -139,23 +159,39 @@ export async function runNewsPipeline(db) {
       }
     }
 
-    // Step 2: Banner (non-blocking — if it fails, proceed to audio)
+    // Step 2: Banner + Thumbnail (non-blocking — if either fails, proceed to audio)
     if (item.status === "script_generated" || item.status?.includes("image_failed")) {
+      // Banner
       try {
         const prompt = await generateVisualPrompt(item.topic);
         const rawImg = await safeRetry(() => generateBannerImage(prompt));
         const imgBuffer = compressBanner(rawImg, path.join(itemDir, "banner"));
         fs.writeFileSync(path.join(itemDir, "banner.jpg"), imgBuffer);
         const gradientColor = extractDominantColor(imgBuffer, path.join(itemDir, "banner_color"));
-        const imageUrl = await uploadBuffer(imgBuffer, `${CLOUDINARY_ROOT}/item_${index}`, "banner");
-        item.image_url = imageUrl;
+        const bannerUrl = await uploadBuffer(imgBuffer, `${CLOUDINARY_ROOT}/item_${index}`, "banner");
+        item.image_url = bannerUrl;
         item.gradient_color = gradientColor;
         console.log(`✅ Banner uploaded for topic ${index}`);
       } catch (err) {
-        console.warn(`⚠️ Banner failed for topic ${index}: ${err.message} — continuing without image`);
+        console.warn(`⚠️ Banner failed for topic ${index}: ${err.message}`);
         item.image_url = "";
         item.gradient_color = "#1a1a2e";
       }
+
+      // Thumbnail
+      try {
+        const thumbPrompt = await generateVisualPrompt(item.topic);
+        const rawThumb = await safeRetry(() => generateThumbnailImage(thumbPrompt));
+        const thumbBuffer = compressThumbnail(rawThumb, path.join(itemDir, "thumbnail"));
+        fs.writeFileSync(path.join(itemDir, "thumbnail.jpg"), thumbBuffer);
+        const thumbUrl = await uploadBuffer(thumbBuffer, `${CLOUDINARY_ROOT}/item_${index}`, "thumbnail");
+        item.thumbnail_url = thumbUrl;
+        console.log(`✅ Thumbnail uploaded for topic ${index}`);
+      } catch (err) {
+        console.warn(`⚠️ Thumbnail failed for topic ${index}: ${err.message}`);
+        item.thumbnail_url = "";
+      }
+
       item.status = "image_uploaded";
       item.error = null;
       items[index] = item;
@@ -231,6 +267,7 @@ export async function runNewsPipeline(db) {
       topic: it.topic,
       category: it.category,
       image_url: it.image_url,
+      thumbnail_url: it.thumbnail_url,
       source_link: it.source_link,
       gradient_color: it.gradient_color,
       timeline: it.timeline,
