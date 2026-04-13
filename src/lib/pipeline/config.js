@@ -14,7 +14,7 @@ export const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET || "";
 export const MODELS = {
   research: "perplexity-fast",
   scriptWriter: "openai",
-  promptWriter: "openai-fast",
+  promptWriter: "gemini-fast",
   audioSpeech: "openai-audio",
   imageGen: "zimage",
   transcription: "whisper",
