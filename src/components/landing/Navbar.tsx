@@ -4,8 +4,10 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
+import { useAuth } from "@/components/AuthProvider";
 
 export default function Navbar() {
+  const { user, loading, login, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
