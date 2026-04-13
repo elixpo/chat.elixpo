@@ -132,12 +132,36 @@ export default function NewsPage() {
     const next = audioRefs.current[idx];
     if (next?.src) { next.currentTime = 0; playTimeoutRef.current = setTimeout(() => next.play(), 600); }
   };
-  const seekTo = (e: React.MouseEvent<HTMLDivElement>) => {
+  const seekFromX = (clientX: number) => {
     if (!seekBarRef.current) return;
     const r = seekBarRef.current.getBoundingClientRect();
     const a = audioRefs.current[currentIdx];
-    if (a?.duration) a.currentTime = (Math.max(0, Math.min(e.clientX - r.left, r.width)) / r.width) * a.duration;
+    if (a?.duration) a.currentTime = (Math.max(0, Math.min(clientX - r.left, r.width)) / r.width) * a.duration;
   };
+  const isDragging = useRef(false);
+  const onSeekDown = (e: React.MouseEvent | React.TouchEvent) => {
+    isDragging.current = true;
+    const x = "touches" in e ? e.touches[0].clientX : e.clientX;
+    seekFromX(x);
+  };
+  useEffect(() => {
+    const onMove = (e: MouseEvent | TouchEvent) => {
+      if (!isDragging.current) return;
+      const x = "touches" in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
+      seekFromX(x);
+    };
+    const onUp = () => { isDragging.current = false; };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    window.addEventListener("touchmove", onMove);
+    window.addEventListener("touchend", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("touchmove", onMove);
+      window.removeEventListener("touchend", onUp);
+    };
+  });
   const fmt = (s: number) => { s = Math.max(0, Math.floor(s)); return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`; };
 
   const pct = duration > 0 ? (currentTime / duration) * 100 : 0;
@@ -258,7 +282,7 @@ export default function NewsPage() {
             {/* Main seek bar */}
             <div className="flex items-center gap-3 mb-4">
               <span className="text-[10px] text-white/30 font-mono w-9 text-right">{fmt(currentTime)}</span>
-              <div ref={seekBarRef} onClick={seekTo} className="flex-1 h-1 rounded-full cursor-pointer relative group hover:h-1.5 transition-all" style={{ background: "rgba(255,255,255,0.08)" }}>
+              <div ref={seekBarRef} onMouseDown={onSeekDown} onTouchStart={onSeekDown} className="flex-1 h-1 rounded-full cursor-pointer relative group hover:h-1.5 transition-all" style={{ background: "rgba(255,255,255,0.08)" }}>
                 <div className="absolute inset-y-0 left-0 rounded-full transition-all" style={{ width: `${pct}%`, background: categoryColor }} />
                 <div className="absolute w-3 h-3 rounded-full bg-white -top-1 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity" style={{ left: `calc(${pct}% - 6px)` }} />
               </div>
