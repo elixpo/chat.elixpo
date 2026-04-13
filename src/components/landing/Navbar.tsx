@@ -35,21 +35,13 @@ export default function Navbar() {
         <div className="w-px h-5 bg-neutral-200 mx-3" />
 
         {loading ? (
-          <div className="w-20 h-8 rounded-full bg-neutral-100 animate-pulse" />
+          <div className="w-8 h-8 rounded-full bg-neutral-100 animate-pulse" />
         ) : user ? (
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-neutral-600 font-medium">{user.displayName}</span>
-            <button
-              onClick={logout}
-              className="px-4 py-1.5 rounded-full text-xs font-semibold text-neutral-500 border border-neutral-200 hover:bg-neutral-100 transition-colors"
-            >
-              Sign out
-            </button>
-          </div>
+          <UserMenu user={user} logout={logout} />
         ) : (
           <button
             onClick={login}
-            className="px-5 py-2 rounded-full text-sm font-semibold bg-neutral-900 text-white hover:bg-neutral-800 transition-colors"
+            className="px-5 py-2 rounded-full text-sm font-semibold bg-neutral-900 text-white hover:bg-neutral-800 transition-colors cursor-pointer"
           >
             Sign in
           </button>
