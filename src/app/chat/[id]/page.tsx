@@ -7,7 +7,7 @@ import { useChat } from "@/lib/chat/use-chat";
 import MessageBubble from "@/components/chat/MessageBubble";
 import ChatInput from "@/components/chat/ChatInput";
 import ChatSidebar from "@/components/chat/ChatSidebar";
-import Link from "next/link";
+import Navbar from "@/components/landing/Navbar";
 
 export default function ChatPage() {
   const { id } = useParams<{ id: string }>();
