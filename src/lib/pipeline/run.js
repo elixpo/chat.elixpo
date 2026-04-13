@@ -11,7 +11,7 @@
 
 import fs from "fs";
 import path from "path";
-import { runNewsPipeline } from "./news/index.js";
+import { runNewsPipeline, fixNewsItem } from "./news/index.js";
 import { runPodcastPipeline } from "./podcast/index.js";
 
 const STATE_FILE = path.resolve("tmp/pipeline_state.json");
@@ -40,6 +40,10 @@ async function main() {
   const stepArg = args.find((a) => a.startsWith("--step="));
   const step = stepArg ? stepArg.split("=")[1] : "all";
 
+  // Fix targeting: --fix=0, --fix=2 etc.
+  const fixArg = args.find((a) => a.startsWith("--fix="));
+  const fixIndex = fixArg ? parseInt(fixArg.split("=")[1], 10) : -1;
+
   ensureTmp();
   const state = loadState();
 
@@ -51,6 +55,18 @@ async function main() {
   // Note: In production, `db` comes from Cloudflare D1 binding.
   // For local testing without D1, we create a mock that logs operations.
   const db = createDbProxy();
+
+  // === NEWS FIX MODE ===
+  if (runNews && fixIndex >= 0) {
+    console.log(`━━━ NEWS FIX: item ${fixIndex} ━━━\n`);
+    try {
+      await fixNewsItem(db, fixIndex);
+      console.log("\n✅ Fix complete.\n");
+    } catch (err) {
+      console.error(`\n❌ Fix failed: ${err.message}\n`);
+    }
+    return;
+  }
 
   // === NEWS ===
   if (runNews && state.news !== "complete") {

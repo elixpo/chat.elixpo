@@ -126,11 +126,11 @@ export default function NewsPage() {
   const togglePlay = () => { const a = audioRefs.current[currentIdx]; if (a?.src) a.paused ? a.play() : a.pause(); };
   const switchTrack = (idx: number) => {
     if (idx < 0 || idx >= items.length || idx === currentIdx) return;
-    audioRefs.current[currentIdx].pause();
+    audioRefs.current[currentIdx]?.pause();
     if (playTimeoutRef.current) clearTimeout(playTimeoutRef.current);
     setCurrentIdx(idx);
-    audioRefs.current[idx].currentTime = 0;
-    playTimeoutRef.current = setTimeout(() => audioRefs.current[idx].play(), 600);
+    const next = audioRefs.current[idx];
+    if (next?.src) { next.currentTime = 0; playTimeoutRef.current = setTimeout(() => next.play(), 600); }
   };
   const seekTo = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!seekBarRef.current) return;
