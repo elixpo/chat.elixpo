@@ -259,7 +259,7 @@ export async function runNewsPipeline(db) {
       items: dbItems,
     });
 
-    cleanupTmp();
+    // cleanupTmp();
     console.log("✅ News pipeline complete!");
   } catch (err) {
     backup.status = "final_error";

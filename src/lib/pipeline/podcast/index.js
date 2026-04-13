@@ -166,7 +166,7 @@ export async function runPodcastPipeline(db) {
       duration: null, // filled by frontend from audio
     });
 
-    cleanupTmp();
+    // cleanupTmp();
     backup.status = "complete";
     console.log("✅ Podcast pipeline complete!");
   }
