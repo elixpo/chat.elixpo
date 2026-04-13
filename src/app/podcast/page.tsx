@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import Image from "next/image";
 import Link from "next/link";
 
 interface TimelineEntry {
@@ -149,37 +148,46 @@ export default function PodcastPage() {
       </Link>
 
       {/* ═══ BACKGROUND ═══ */}
-      {/* Banner full bleed */}
+      {/* Always show gradient base */}
+      <div className="absolute inset-0 z-0" style={{ background: `radial-gradient(ellipse at top, ${gradientColor}88 0%, ${gradientColor} 70%, #0a0a0a 100%)` }} />
+      {/* Banner full bleed if available */}
       {bannerUrl && (
         <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-cover bg-center scale-110" style={{ backgroundImage: `url(${bannerUrl})`, filter: "blur(30px) brightness(0.5)" }} />
+          <div className="absolute inset-0 bg-cover bg-center scale-110 transition-opacity duration-1000" style={{ backgroundImage: `url(${bannerUrl})`, filter: "blur(20px) brightness(0.4) saturate(1.3)" }} />
         </div>
       )}
-      {/* Gradient overlay: transparent top → gradientColor bottom */}
-      <div className="absolute inset-0 z-[1]" style={{ background: `linear-gradient(to bottom, transparent 0%, ${gradientColor}dd 50%, ${gradientColor} 100%)` }} />
+      {/* Gradient overlay: soft fade from top to gradientColor */}
+      <div className="absolute inset-0 z-[1]" style={{ background: `linear-gradient(to bottom, ${gradientColor}40 0%, ${gradientColor}cc 40%, ${gradientColor}f0 70%, ${gradientColor} 100%)` }} />
 
       {/* ═══ MAIN CONTENT ═══ */}
       <div className="relative z-10 flex-1 flex flex-col overflow-hidden">
         {/* Top: Banner image + info */}
         <div className="flex-shrink-0 pt-16 pb-4 px-6 flex flex-col items-center">
-          {/* Carousel / Banner display */}
-          <div className="relative w-full max-w-lg h-[200px] max-sm:h-[150px] rounded-2xl overflow-hidden shadow-2xl shadow-black/60 mb-5">
-            <div
-              className="absolute inset-0 bg-cover bg-center transition-all duration-1000"
-              style={{ backgroundImage: `url(${activeCarouselUrl || bannerUrl || thumbnailUrl || ""})` }}
-            />
-            {/* Gradient fade at bottom of image */}
-            <div className="absolute inset-x-0 bottom-0 h-1/2" style={{ background: `linear-gradient(to bottom, transparent, ${gradientColor}cc)` }} />
-
-            {/* Carousel dots */}
-            {carouselImages.length > 0 && (
-              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                {carouselImages.map((img, i) => (
-                  <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all ${activeCarouselUrl === img.url ? "bg-white w-4" : "bg-white/40"}`} />
-                ))}
+          {/* Carousel / Banner / Thumbnail display */}
+          {(() => {
+            const imgSrc = activeCarouselUrl || bannerUrl || thumbnailUrl;
+            return imgSrc ? (
+              <div className="relative w-full max-w-lg h-[200px] max-sm:h-[150px] rounded-2xl overflow-hidden shadow-2xl shadow-black/60 mb-5">
+                <div className="absolute inset-0 bg-cover bg-center transition-all duration-1000" style={{ backgroundImage: `url(${imgSrc})` }} />
+                <div className="absolute inset-x-0 bottom-0 h-1/2" style={{ background: `linear-gradient(to bottom, transparent, ${gradientColor}cc)` }} />
+                {carouselImages.length > 0 && (
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                    {carouselImages.map((img, i) => (
+                      <div key={i} className={`h-1.5 rounded-full transition-all ${activeCarouselUrl === img.url ? "bg-white w-4" : "bg-white/40 w-1.5"}`} />
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            ) : (
+              <div className="relative w-32 h-32 max-sm:w-24 max-sm:h-24 rounded-3xl overflow-hidden shadow-2xl shadow-black/60 mb-5 bg-white/5 backdrop-blur-sm border border-white/10 flex items-center justify-center">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1" strokeLinecap="round" className="opacity-20">
+                  <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" />
+                  <path d="M19 10v2a7 7 0 01-14 0v-2" />
+                  <line x1="12" y1="19" x2="12" y2="23" />
+                </svg>
+              </div>
+            );
+          })()}
 
           {/* Podcast title */}
           <h1 className="text-2xl max-sm:text-lg font-extrabold text-white text-center font-[family-name:var(--font-parkinsans)] leading-tight max-w-lg mb-2">
@@ -189,7 +197,7 @@ export default function PodcastPage() {
           {/* Source info */}
           {sourceDomain && (
             <a href={sourceLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 mb-1 group">
-              {faviconUrl && <Image src={faviconUrl} alt="" width={16} height={16} className="rounded-sm opacity-60 group-hover:opacity-100 transition-opacity" />}
+              {faviconUrl && <img src={faviconUrl} alt="" width={16} height={16} className="rounded-sm opacity-60 group-hover:opacity-100 transition-opacity" />}
               <span className="text-xs text-white/40 group-hover:text-white/70 transition-colors uppercase tracking-wider font-medium">{sourceDomain}</span>
             </a>
           )}
