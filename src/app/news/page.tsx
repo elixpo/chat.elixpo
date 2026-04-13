@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
-import type { NewsItem } from "@/lib/types";
+import type { NewsItem, TimelineEntry } from "@/lib/types";
 
 const CATEGORY_COLORS: Record<string, string> = {
   tech: "#f59e0b", science: "#10b981", sports: "#3b82f6", health: "#ef4444",
