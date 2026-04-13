@@ -1,31 +1,63 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import Image from "next/image";
+import { useAuth } from "@/components/AuthProvider";
 
 export default function ChatPage() {
   const { id } = useParams<{ id: string }>();
+  const { user, loading, login } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-white">
+        <div className="w-8 h-8 border-2 border-neutral-200 border-t-neutral-900 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-white px-6">
+        <img src="/images/logo.png" alt="Elixpo" width={64} height={64} className="rounded-2xl mb-6 opacity-60" />
+        <h2 className="font-[family-name:var(--font-parkinsans)] text-2xl font-bold text-neutral-900 mb-2">
+          Sign in to chat
+        </h2>
+        <p className="text-neutral-500 text-sm leading-relaxed text-center max-w-sm mb-6">
+          Connect with your Elixpo account to start conversations with AI.
+        </p>
+        <button
+          onClick={login}
+          className="px-8 py-3 rounded-full text-sm font-semibold bg-neutral-900 text-white hover:bg-neutral-800 transition-colors"
+        >
+          Sign in with Elixpo
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-screen bg-white">
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-3 border-b border-neutral-100">
         <div className="flex items-center gap-2.5">
-          <Image src="/images/logo.png" alt="Elixpo" width={32} height={32} className="rounded-md" />
+          <img src="/images/logo.png" alt="Elixpo" width={32} height={32} className="rounded-md" />
           <span className="font-[family-name:var(--font-parkinsans)] font-bold text-neutral-900">Elixpo Chat</span>
         </div>
-        <span className="text-xs text-neutral-400 font-mono">{id === "new" ? "New session" : id}</span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-neutral-400">{user.displayName}</span>
+          <span className="text-xs text-neutral-300 font-mono">{id === "new" ? "New session" : id.slice(0, 8)}</span>
+        </div>
       </header>
 
-      {/* Chat area placeholder */}
+      {/* Chat area */}
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center max-w-md px-6">
-          <Image src="/images/logo.png" alt="Elixpo" width={64} height={64} className="rounded-2xl mx-auto mb-6 opacity-60" />
-          <h2 className="font-[family-name:var(--font-parkinsans)] text-2xl font-bold text-neutral-900 mb-2">
-            Chat is coming soon
+          <img src="/images/logo.png" alt="Elixpo" width={48} height={48} className="rounded-xl mx-auto mb-4 opacity-40" />
+          <h2 className="font-[family-name:var(--font-parkinsans)] text-xl font-bold text-neutral-900 mb-2">
+            Hey {user.displayName}!
           </h2>
-          <p className="text-neutral-500 text-sm leading-relaxed">
-            AI conversations with artifacts, multiple models, and rich formatting. This section is under development.
+          <p className="text-neutral-400 text-sm leading-relaxed">
+            Chat is coming soon. AI conversations with artifacts, multiple models, and rich formatting.
           </p>
         </div>
       </div>

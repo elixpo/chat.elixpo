@@ -34,12 +34,26 @@ export default function Navbar() {
 
         <div className="w-px h-5 bg-neutral-200 mx-3" />
 
-        <Link
-          href="/chat/new"
-          className="px-5 py-2 rounded-full text-sm font-semibold bg-neutral-900 text-white hover:bg-neutral-800 transition-colors"
-        >
-          Sign in
-        </Link>
+        {loading ? (
+          <div className="w-20 h-8 rounded-full bg-neutral-100 animate-pulse" />
+        ) : user ? (
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-neutral-600 font-medium">{user.displayName}</span>
+            <button
+              onClick={logout}
+              className="px-4 py-1.5 rounded-full text-xs font-semibold text-neutral-500 border border-neutral-200 hover:bg-neutral-100 transition-colors"
+            >
+              Sign out
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={login}
+            className="px-5 py-2 rounded-full text-sm font-semibold bg-neutral-900 text-white hover:bg-neutral-800 transition-colors"
+          >
+            Sign in
+          </button>
+        )}
       </div>
 
       {/* Mobile hamburger */}
@@ -67,13 +81,21 @@ export default function Navbar() {
               <MobileLink href="/podcast" onClick={() => setMobileOpen(false)}>Podcast</MobileLink>
               <MobileLink href="/discover" onClick={() => setMobileOpen(false)}>Discover</MobileLink>
               <MobileLink href="/chat/new" onClick={() => setMobileOpen(false)}>Chat</MobileLink>
-              <Link
-                href="/chat/new"
-                onClick={() => setMobileOpen(false)}
-                className="mt-2 px-5 py-2.5 rounded-full text-sm font-semibold bg-neutral-900 text-white text-center"
-              >
-                Sign in
-              </Link>
+              {user ? (
+                <button
+                  onClick={() => { setMobileOpen(false); logout(); }}
+                  className="mt-2 px-5 py-2.5 rounded-full text-sm font-semibold border border-neutral-200 text-neutral-600 text-center"
+                >
+                  Sign out ({user.displayName})
+                </button>
+              ) : (
+                <button
+                  onClick={() => { setMobileOpen(false); login(); }}
+                  className="mt-2 px-5 py-2.5 rounded-full text-sm font-semibold bg-neutral-900 text-white text-center"
+                >
+                  Sign in
+                </button>
+              )}
             </div>
           </motion.div>
         )}

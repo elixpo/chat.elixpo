@@ -3,8 +3,9 @@
  * Based on: https://accounts.elixpo.com
  */
 
-const ACCOUNTS_BASE = "https://accounts.elixpo.com";
-const CLIENT_ID = process.env.ELIXPO_OAUTH_CLIENT_ID || "";
+const ACCOUNTS_BASE = process.env.NEXT_PUBLIC_ELIXPO_ACCOUNTS_BASE_URL || "https://accounts.elixpo.com";
+const CLIENT_ID = process.env.NEXT_PUBLIC_ELIXPO_ACCOUNTS_CLIENT_ID || "";
+// Server-only — never expose to browser (no NEXT_PUBLIC_ prefix)
 const CLIENT_SECRET = process.env.ELIXPO_OAUTH_CLIENT_SECRET || "";
 
 export function getRedirectUri(request: Request) {
