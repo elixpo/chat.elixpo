@@ -73,6 +73,7 @@ export default function LandingPage() {
         codeSnippet={DISCOVER_SNIPPET}
       />
 
+      <FeaturedContent />
       <ChatShowcase />
       <Footer />
     </main>
