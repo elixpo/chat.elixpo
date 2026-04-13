@@ -58,7 +58,23 @@ export async function generatePodcastSpeech(sections) {
 
   const finalPath = path.join(TMP, "audio.mp3");
   try {
-    execSync(`ffmpeg -y -f concat -safe 0 -i "${listPath}" -codec:a libmp3lame -b:a 128k "${finalPath}" 2>/dev/null`);
+    // Concat with 150ms crossfade between segments for natural speaker transitions
+    const filterParts = [];
+    let inputArgs = "";
+    for (let i = 0; i < segmentPaths.length; i++) inputArgs += ` -i "${segmentPaths[i]}"`;
+
+    if (segmentPaths.length === 1) {
+      execSync(`ffmpeg -y -i "${segmentPaths[0]}" -codec:a libmp3lame -b:a 128k "${finalPath}" 2>/dev/null`);
+    } else {
+      // Use acrossfade for pairs, then chain them
+      let chain = "[0:a]";
+      for (let i = 1; i < segmentPaths.length; i++) {
+        const out = i === segmentPaths.length - 1 ? "" : `[a${i}]`;
+        filterParts.push(`${chain}[${i}:a]acrossfade=d=0.15:c1=tri:c2=tri${out ? out : ""}`);
+        chain = `[a${i}]`;
+      }
+      execSync(`ffmpeg -y${inputArgs} -filter_complex "${filterParts.join(";")}" -codec:a libmp3lame -b:a 128k "${finalPath}" 2>/dev/null`);
+    }
   } catch {
     console.warn("  ⚠️ Concat failed, merging buffers");
     fs.writeFileSync(finalPath, Buffer.concat(segmentPaths.map((p) => fs.readFileSync(p))));
