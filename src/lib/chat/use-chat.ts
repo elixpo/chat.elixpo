@@ -29,7 +29,8 @@ export function useChat(initialSessionId?: string) {
   const [messages, setMessages] = useState<DisplayMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-  const [sessionId, setSessionId] = useState(initialSessionId || "");
+  // Generate session ID immediately if none provided
+  const [sessionId] = useState(() => initialSessionId || crypto.randomUUID().slice(0, 11));
   const [chatTitle, setChatTitle] = useState("");
   const abortRef = useRef<AbortController | null>(null);
   const streamTextRef = useRef("");
