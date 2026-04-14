@@ -27,6 +27,7 @@ export default function ChatPage() {
   const { user, loading: authLoading, login } = useAuth();
   const { messages, isLoading, isLoadingHistory, sessionId, chatTitle, setChatTitle, sendMessage, stopStreaming, loadSession, retryLast } = useChat(id === "new" ? undefined : id);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [model, setModel] = useState("lixsearch");
   const [sharecopied, setShareCopied] = useState(false);
@@ -37,7 +38,21 @@ export default function ChatPage() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [messages]);
+  // Smooth auto-scroll that follows streaming
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // Auto-focus the input when response finishes
+  const prevLoading = useRef(false);
+  useEffect(() => {
+    if (prevLoading.current && !isLoading) {
+      // Response just finished — focus the textarea
+      const textarea = document.querySelector<HTMLTextAreaElement>("textarea");
+      textarea?.focus();
+    }
+    prevLoading.current = isLoading;
+  }, [isLoading]);
 
   const handleShare = () => {
     const url = `${window.location.origin}/chat/${sessionId}`;
@@ -118,8 +133,13 @@ export default function ChatPage() {
               )}
               {messages.map((msg, i) => {
                 const isLastAssistant = msg.role === "assistant" && !msg.isStreaming && i === messages.length - 1;
-                return <MessageBubble key={msg.id} message={msg} onRetry={isLastAssistant ? retryLast : undefined} />;
+                return (
+                  <div key={msg.id} className={msg.role === "user" ? "animate-msg-user" : "animate-msg-assistant"}>
+                    <MessageBubble message={msg} onRetry={isLastAssistant ? retryLast : undefined} />
+                  </div>
+                );
               })}
+              <div ref={bottomRef} />
             </div>
           )}
         </div>
