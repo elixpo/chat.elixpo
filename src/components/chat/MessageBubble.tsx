@@ -7,10 +7,23 @@ import type { DisplayMessage } from "@/lib/chat/use-chat";
 
 marked.setOptions({ breaks: true, gfm: true });
 
-/** Extract source URLs and strip all source references from content */
-function extractSources(text: string): { sources: { domain: string; url: string }[]; cleanText: string } {
+const IMG_EXT = /\.(?:png|jpe?g|gif|webp|svg|avif|bmp|tiff?)(?:[?#].*)?$/i;
+const ELIXPO_IMG = /search\.elixpo\.com\/api\/image\//;
+
+function isImageUrl(url: string): boolean {
+  return IMG_EXT.test(url) || ELIXPO_IMG.test(url);
+}
+
+/** Extract source URLs, related images, and strip all references from content */
+function extractContent(text: string): {
+  sources: { domain: string; url: string }[];
+  images: string[];
+  cleanText: string;
+} {
   const sources: { domain: string; url: string }[] = [];
-  const seen = new Set<string>();
+  const images: string[] = [];
+  const seenDomains = new Set<string>();
+  const seenImages = new Set<string>();
 
   // Extract all URLs from the original text
   const urlRegex = /\[([^\]]*)\]\((https?:\/\/[^)]+)\)|(?<!\()https?:\/\/[^\s)]+/g;
@@ -19,53 +32,52 @@ function extractSources(text: string): { sources: { domain: string; url: string 
     const url = match[2] || match[0];
     try {
       const u = new URL(url);
-      // Skip elixpo URLs entirely — not source artifacts
-      if (/search\.elixpo\.com/.test(url)) continue;
-      const domain = u.hostname.replace(/^www\./, "");
-      if (!seen.has(domain)) {
-        seen.add(domain);
-        sources.push({ domain, url });
+      if (isImageUrl(url)) {
+        if (!seenImages.has(url)) {
+          seenImages.add(url);
+          // Proxy elixpo images, keep others as-is
+          if (ELIXPO_IMG.test(url)) {
+            const id = url.match(/\/api\/image\/([a-f0-9-]+)/i)?.[1];
+            if (id) images.push(`/api/image?id=${id}`);
+          } else {
+            images.push(url);
+          }
+        }
+      } else {
+        if (/search\.elixpo\.com/.test(url)) continue;
+        const domain = u.hostname.replace(/^www\./, "");
+        if (!seenDomains.has(domain)) {
+          seenDomains.add(domain);
+          sources.push({ domain, url });
+        }
       }
     } catch { /* */ }
   }
 
-  // Strip the entire sources block: ---\n**Sources:**\n1. [domain](url)\n...
+  // Strip "Sources:" block (---\n**Sources:**\n... to end)
   let cleanText = text.replace(/\n*-{3,}\n\*{0,2}Sources?\*{0,2}:?.*(?:\n.*)*$/i, "");
-  // Fallback: strip **Sources:** block without --- separator
+  // Fallback: strip **Sources:** without --- separator
   cleanText = cleanText.replace(/\n*\*{0,2}Sources?\*{0,2}:?\s*\n(?:\s*\d+\.\s*\[.*?\]\(.*?\)\s*\n?)+/gi, "");
-  // Remove markdown image links ![text](url) — keep elixpo image URLs for rendering
-  cleanText = cleanText.replace(/!\[([^\]]*)\]\((https?:\/\/[^)]+)\)/g, (_, _alt, url) => {
-    if (/search\.elixpo\.com\/api\//.test(url)) return url;
-    return "";
+  // Strip "Related Images:" block
+  cleanText = cleanText.replace(/\n*\*{0,2}Related\s+Images?\*{0,2}:?\s*\n(?:.*\n?)*/gi, (block) => {
+    // Only strip if the block contains image URLs
+    if (/https?:\/\/\S+/i.test(block)) return "";
+    return block;
   });
-  // Remove remaining inline markdown links [text](url) — keep elixpo image URLs
-  cleanText = cleanText.replace(/\[([^\]]*)\]\((https?:\/\/[^)]+)\)/g, (_, _text, url) => {
-    if (/search\.elixpo\.com\/api\//.test(url)) return url;
-    return "";
-  });
-  // Remove any remaining bare URLs (but keep elixpo API URLs for image rendering)
-  cleanText = cleanText.replace(/https?:\/\/[^\s)]+/g, (url) => {
-    if (/search\.elixpo\.com\/api\//.test(url)) return url;
-    return "";
-  });
+  // Remove all markdown image links ![text](url)
+  cleanText = cleanText.replace(/!\[([^\]]*)\]\((https?:\/\/[^)]+)\)/g, "");
+  // Remove all markdown links [text](url)
+  cleanText = cleanText.replace(/\[([^\]]*)\]\((https?:\/\/[^)]+)\)/g, "");
+  // Remove any remaining bare URLs
+  cleanText = cleanText.replace(/https?:\/\/[^\s)]+/g, "");
   // Clean up excess blank lines
   cleanText = cleanText.replace(/\n{3,}/g, "\n\n").trim();
 
-  return { sources, cleanText };
+  return { sources, images, cleanText };
 }
 
 function renderMarkdown(text: string): string {
-  // Convert elixpo image URLs to proxied image embeds (with or without .png)
-  let processed = text.replace(
-    /https?:\/\/search\.elixpo\.com\/api\/image\/([a-f0-9-]+)(?:\.png)?/gi,
-    (_, id) => `![Generated image](/api/image?id=${id})`
-  );
-  // Auto-embed standalone image URLs (png, jpg, etc.)
-  processed = processed.replace(
-    /(?<![(\[!])\bhttps?:\/\/\S+\.(?:png|jpg|jpeg|gif|webp|svg)(?:\?\S*)?/gi,
-    (url) => `![](${url})`
-  );
-  return marked.parse(processed) as string;
+  return marked.parse(text) as string;
 }
 
 interface MessageBubbleProps {
@@ -83,9 +95,9 @@ interface SourceMeta {
 
 export default function MessageBubble({ message, onRetry }: MessageBubbleProps) {
   const isUser = message.role === "user";
-  const { sources, cleanText } = useMemo(() => {
-    if (isUser) return { sources: [], cleanText: message.content };
-    return extractSources(message.content);
+  const { sources, images: relatedImages, cleanText } = useMemo(() => {
+    if (isUser) return { sources: [], images: [], cleanText: message.content };
+    return extractContent(message.content);
   }, [message.content, isUser]);
   const html = useMemo(() => (isUser ? null : renderMarkdown(cleanText)), [cleanText, isUser]);
   const [copied, setCopied] = useState(false);
@@ -170,7 +182,7 @@ export default function MessageBubble({ message, onRetry }: MessageBubbleProps) 
             [&_h1]:text-lg [&_h2]:text-base [&_h3]:text-sm [&_h1]:font-bold [&_h2]:font-bold [&_h3]:font-semibold"
           dangerouslySetInnerHTML={{ __html: html || "" }}
         />
-      ) : message.isStreaming ? (
+      ) : message.isStreaming && !(message.taskBlocks && message.taskBlocks.length > 0) ? (
         <div className="flex gap-1.5 py-2">
           <span className="w-2 h-2 rounded-full bg-neutral-300 animate-bounce" style={{ animationDelay: "0ms" }} />
           <span className="w-2 h-2 rounded-full bg-neutral-300 animate-bounce" style={{ animationDelay: "150ms" }} />
@@ -214,6 +226,23 @@ export default function MessageBubble({ message, onRetry }: MessageBubbleProps) 
                   </p>
                 </div>
               )}
+            </a>
+          ))}
+        </div>
+      )}
+
+      {/* Related images */}
+      {!message.isStreaming && relatedImages.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-4">
+          {relatedImages.map((src, i) => (
+            <a key={i} href={src} target="_blank" rel="noopener noreferrer">
+              <img
+                src={src}
+                alt=""
+                loading="lazy"
+                className="w-full h-36 object-cover rounded-xl border border-neutral-200 hover:border-neutral-300 transition-colors bg-neutral-50"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              />
             </a>
           ))}
         </div>
