@@ -62,7 +62,7 @@ export default function MessageBubble({ message, onRetry }: MessageBubbleProps) 
           {message.images?.map((img, i) => (
             <img key={i} src={img} alt="" className="rounded-xl mb-2 max-w-full max-h-48 object-cover ml-auto" />
           ))}
-          <div className="bg-neutral-100 text-neutral-800 rounded-2xl rounded-br-md px-4 py-3 text-sm leading-relaxed">
+          <div className="bg-neutral-800 text-white rounded-2xl rounded-br-md px-4 py-3 text-sm leading-relaxed shadow-sm">
             <p className="whitespace-pre-wrap">{message.content}</p>
           </div>
         </div>
