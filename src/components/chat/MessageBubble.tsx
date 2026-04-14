@@ -8,11 +8,11 @@ import type { DisplayMessage } from "@/lib/chat/use-chat";
 marked.setOptions({ breaks: true, gfm: true });
 
 /** Extract source URLs and strip all source references from content */
-function extractSources(text: string): { sources: { domain: string; url: string; title: string }[]; cleanText: string } {
-  const sources: { domain: string; url: string; title: string }[] = [];
+function extractSources(text: string): { sources: { domain: string; url: string }[]; cleanText: string } {
+  const sources: { domain: string; url: string }[] = [];
   const seen = new Set<string>();
 
-  // Extract all URLs from the original text first
+  // Extract all URLs from the original text
   const urlRegex = /\[([^\]]*)\]\((https?:\/\/[^)]+)\)|(?<!\()https?:\/\/[^\s)]+/g;
   let match;
   while ((match = urlRegex.exec(text)) !== null) {
@@ -22,17 +22,16 @@ function extractSources(text: string): { sources: { domain: string; url: string;
       const domain = u.hostname.replace(/^www\./, "");
       if (!seen.has(domain)) {
         seen.add(domain);
-        const pathTitle = u.pathname.replace(/\//g, " ").replace(/[-_]/g, " ").trim().slice(0, 80);
-        sources.push({ domain, url, title: match[1] || pathTitle || domain });
+        sources.push({ domain, url });
       }
     } catch { /* */ }
   }
 
-  // Strip "Sources:" block
-  let cleanText = text.replace(/\n*(?:\*{0,2}Sources?\*{0,2}:?\s*\n)((?:\s*[-–•*]?\s*\[?[^\n]*https?:\/\/[^\n]+\n?)+)/gi, "");
-  // Strip standalone bare URLs (lines that are just a URL)
+  // Strip everything from "Sources" heading to the end (covers **Sources:**, Sources:, etc.)
+  let cleanText = text.replace(/\n*\*{0,2}Sources?\*{0,2}:?[\t ]*\n[\s\S]*$/i, "");
+  // Strip standalone bare URLs on their own line
   cleanText = cleanText.replace(/^\s*https?:\/\/[^\s]+\s*$/gm, "");
-  // Strip markdown links that are on their own line
+  // Strip markdown-link-only lines
   cleanText = cleanText.replace(/^\s*[-–•*]?\s*\[[^\]]*\]\(https?:\/\/[^)]+\)\s*$/gm, "");
   // Clean up excess blank lines
   cleanText = cleanText.replace(/\n{3,}/g, "\n\n").trim();
@@ -54,6 +53,14 @@ interface MessageBubbleProps {
   onRetry?: () => void;
 }
 
+interface SourceMeta {
+  domain: string;
+  url: string;
+  title: string;
+  description: string;
+  loading: boolean;
+}
+
 export default function MessageBubble({ message, onRetry }: MessageBubbleProps) {
   const isUser = message.role === "user";
   const { sources, cleanText } = useMemo(() => {
@@ -63,6 +70,38 @@ export default function MessageBubble({ message, onRetry }: MessageBubbleProps) 
   const html = useMemo(() => (isUser ? null : renderMarkdown(cleanText)), [cleanText, isUser]);
   const [copied, setCopied] = useState(false);
   const [liked, setLiked] = useState<"like" | "dislike" | null>(null);
+  const [metas, setMetas] = useState<SourceMeta[]>([]);
+
+  // Fetch meta for each source once streaming is done
+  useEffect(() => {
+    if (isUser || message.isStreaming || sources.length === 0) return;
+
+    // Init with loading state
+    setMetas(sources.slice(0, 8).map((s) => ({ ...s, title: "", description: "", loading: true })));
+
+    sources.slice(0, 8).forEach((s, i) => {
+      fetch(`/api/meta?url=${encodeURIComponent(s.url)}`)
+        .then((r) => r.json())
+        .then((data) => {
+          setMetas((prev) => {
+            const updated = [...prev];
+            if (updated[i]) {
+              updated[i] = { ...updated[i], title: data.title || s.domain, description: data.description || "", loading: false };
+            }
+            return updated;
+          });
+        })
+        .catch(() => {
+          setMetas((prev) => {
+            const updated = [...prev];
+            if (updated[i]) {
+              updated[i] = { ...updated[i], title: s.domain, description: "", loading: false };
+            }
+            return updated;
+          });
+        });
+    });
+  }, [isUser, message.isStreaming, sources]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(message.content);
@@ -122,15 +161,15 @@ export default function MessageBubble({ message, onRetry }: MessageBubbleProps) 
       )}
 
       {/* Artifact cards */}
-      {!message.isStreaming && sources.length > 0 && (
+      {!message.isStreaming && metas.length > 0 && (
         <div className="flex flex-wrap gap-2.5 mt-4">
-          {sources.slice(0, 8).map((s, i) => (
+          {metas.map((s, i) => (
             <a
               key={i}
               href={s.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-start gap-2.5 w-56 px-3 py-2.5 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 hover:border-neutral-300 transition-colors"
+              className="flex items-start gap-2.5 w-60 px-3 py-2.5 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 hover:border-neutral-300 transition-colors"
             >
               <img
                 src={`https://www.google.com/s2/favicons?domain=${s.domain}&sz=32`}
@@ -139,10 +178,19 @@ export default function MessageBubble({ message, onRetry }: MessageBubbleProps) 
                 height={16}
                 className="rounded-sm mt-0.5 shrink-0"
               />
-              <div className="min-w-0">
-                <p className="text-xs font-medium text-neutral-500 truncate">{s.domain}</p>
-                <p className="text-[13px] text-neutral-700 leading-snug line-clamp-2">{s.title}</p>
-              </div>
+              {s.loading ? (
+                <div className="flex-1 min-w-0 space-y-1.5">
+                  <div className="h-3 w-20 bg-neutral-100 rounded animate-pulse" />
+                  <div className="h-3 w-full bg-neutral-100 rounded animate-pulse" />
+                </div>
+              ) : (
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-neutral-400 truncate">{s.domain}</p>
+                  <p className="text-[13px] text-neutral-700 leading-snug line-clamp-2">
+                    {s.description || s.title}
+                  </p>
+                </div>
+              )}
             </a>
           ))}
         </div>
