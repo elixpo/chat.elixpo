@@ -28,12 +28,15 @@ function parseTaskBlocks(raw: string): { tasks: string[]; cleanContent: string }
 export function useChat(initialSessionId?: string) {
   const [messages, setMessages] = useState<DisplayMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [sessionId, setSessionId] = useState(initialSessionId || "");
+  const [chatTitle, setChatTitle] = useState("");
   const abortRef = useRef<AbortController | null>(null);
   const streamTextRef = useRef("");
 
   /** Load existing session */
   const loadSession = useCallback(async (sid: string) => {
+    setIsLoadingHistory(true);
     try {
       const history = await getSession(sid);
       const displayMsgs: DisplayMessage[] = history.map((msg, i) => {
@@ -47,9 +50,13 @@ export function useChat(initialSessionId?: string) {
       });
       setMessages(displayMsgs);
       setSessionId(sid);
+      // Derive title from first user message
+      const firstUser = displayMsgs.find((m) => m.role === "user");
+      if (firstUser) setChatTitle(firstUser.content.slice(0, 50) + (firstUser.content.length > 50 ? "..." : ""));
     } catch (err) {
       console.error("Failed to load session:", err);
     }
+    setIsLoadingHistory(false);
   }, []);
 
   /** Send a message */
@@ -77,6 +84,9 @@ export function useChat(initialSessionId?: string) {
       content,
       images,
     };
+
+    // Set chat title from first message
+    if (!chatTitle) setChatTitle(content.slice(0, 50) + (content.length > 50 ? "..." : ""));
 
     const assistantMsg: DisplayMessage = {
       id: `asst-${Date.now()}`,
@@ -183,7 +193,9 @@ export function useChat(initialSessionId?: string) {
   return {
     messages,
     isLoading,
+    isLoadingHistory,
     sessionId,
+    chatTitle,
     sendMessage,
     stopStreaming,
     loadSession,
