@@ -19,6 +19,8 @@ function extractSources(text: string): { sources: { domain: string; url: string 
     const url = match[2] || match[0];
     try {
       const u = new URL(url);
+      // Skip elixpo image URLs — they render as images, not source artifacts
+      if (/search\.elixpo\.com\/api\/image\//.test(url)) continue;
       const domain = u.hostname.replace(/^www\./, "");
       if (!seen.has(domain)) {
         seen.add(domain);
