@@ -19,8 +19,8 @@ function extractSources(text: string): { sources: { domain: string; url: string 
     const url = match[2] || match[0];
     try {
       const u = new URL(url);
-      // Skip elixpo image URLs — they render as images, not source artifacts
-      if (/search\.elixpo\.com\/api\/image\//.test(url)) continue;
+      // Skip elixpo URLs entirely — not source artifacts
+      if (/search\.elixpo\.com/.test(url)) continue;
       const domain = u.hostname.replace(/^www\./, "");
       if (!seen.has(domain)) {
         seen.add(domain);
@@ -33,14 +33,19 @@ function extractSources(text: string): { sources: { domain: string; url: string 
   let cleanText = text.replace(/\n*-{3,}\n\*{0,2}Sources?\*{0,2}:?.*(?:\n.*)*$/i, "");
   // Fallback: strip **Sources:** block without --- separator
   cleanText = cleanText.replace(/\n*\*{0,2}Sources?\*{0,2}:?\s*\n(?:\s*\d+\.\s*\[.*?\]\(.*?\)\s*\n?)+/gi, "");
-  // Remove any remaining inline markdown links (but keep elixpo image links)
-  cleanText = cleanText.replace(/\[([^\]]*)\]\((https?:\/\/[^)]+)\)/g, (_, _text, url) => {
-    if (/search\.elixpo\.com\/api\/image\//.test(url)) return url;
+  // Remove markdown image links ![text](url) — keep elixpo image URLs for rendering
+  cleanText = cleanText.replace(/!\[([^\]]*)\]\((https?:\/\/[^)]+)\)/g, (_, _alt, url) => {
+    if (/search\.elixpo\.com\/api\//.test(url)) return url;
     return "";
   });
-  // Remove any remaining bare URLs (but keep elixpo image links)
+  // Remove remaining inline markdown links [text](url) — keep elixpo image URLs
+  cleanText = cleanText.replace(/\[([^\]]*)\]\((https?:\/\/[^)]+)\)/g, (_, _text, url) => {
+    if (/search\.elixpo\.com\/api\//.test(url)) return url;
+    return "";
+  });
+  // Remove any remaining bare URLs (but keep elixpo API URLs for image rendering)
   cleanText = cleanText.replace(/https?:\/\/[^\s)]+/g, (url) => {
-    if (/search\.elixpo\.com\/api\/image\//.test(url)) return url;
+    if (/search\.elixpo\.com\/api\//.test(url)) return url;
     return "";
   });
   // Clean up excess blank lines
