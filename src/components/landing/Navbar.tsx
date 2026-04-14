@@ -28,6 +28,7 @@ export default function Navbar() {
 
       {/* Desktop nav — all right-aligned */}
       <div className="hidden md:flex items-center gap-1">
+        <NavLink href="/pricing">Pricing</NavLink>
         <NavLink href="/news">News</NavLink>
         <NavLink href="/podcast">Podcast</NavLink>
         <NavLink href="/discover">Discover</NavLink>
@@ -75,6 +76,7 @@ export default function Navbar() {
             className="absolute top-full left-0 w-full bg-white dark:bg-neutral-950 border-b border-neutral-200 dark:border-neutral-800 shadow-lg md:hidden"
           >
             <div className="flex flex-col p-6 gap-4">
+              <MobileLink href="/pricing" onClick={() => setMobileOpen(false)}>Pricing</MobileLink>
               <MobileLink href="/news" onClick={() => setMobileOpen(false)}>News</MobileLink>
               <MobileLink href="/podcast" onClick={() => setMobileOpen(false)}>Podcast</MobileLink>
               <MobileLink href="/discover" onClick={() => setMobileOpen(false)}>Discover</MobileLink>
@@ -154,12 +156,13 @@ function UserMenu({ user, logout }: { user: { displayName: string; email: string
 
               {/* Upgrade */}
               <div className="px-3 py-2">
-                <button
+                <Link
+                  href="/pricing"
                   onClick={() => setOpen(false)}
-                  className="w-full px-3 py-2 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 transition-all cursor-pointer text-center"
+                  className="w-full block px-3 py-2 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 transition-all cursor-pointer text-center"
                 >
                   Upgrade Plan
-                </button>
+                </Link>
               </div>
 
               <div className="border-t border-neutral-100">
