@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { chatStream, getSession } from "./search-client";
+import { chatStream, getSession, type ChatMessage } from "./search-client";
 
 export interface DisplayMessage {
   id: string;
@@ -167,6 +167,19 @@ export function useChat(initialSessionId?: string) {
     });
   }, []);
 
+  /** Retry the last user message */
+  const retryLast = useCallback(() => {
+    const lastUser = [...messages].reverse().find((m) => m.role === "user");
+    if (!lastUser) return;
+    // Remove last assistant message
+    setMessages((prev) => {
+      const idx = prev.findLastIndex((m) => m.role === "assistant");
+      if (idx >= 0) return prev.filter((_, i) => i !== idx);
+      return prev;
+    });
+    sendMessage(lastUser.content, lastUser.images);
+  }, [messages, sendMessage]);
+
   return {
     messages,
     isLoading,
@@ -174,5 +187,6 @@ export function useChat(initialSessionId?: string) {
     sendMessage,
     stopStreaming,
     loadSession,
+    retryLast,
   };
 }

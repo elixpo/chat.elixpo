@@ -13,7 +13,7 @@ export default function ChatPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { user, loading: authLoading, login } = useAuth();
-  const { messages, isLoading, sessionId, sendMessage, stopStreaming, loadSession } = useChat(id === "new" ? undefined : id);
+  const { messages, isLoading, sessionId, sendMessage, stopStreaming, loadSession, retryLast } = useChat(id === "new" ? undefined : id);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [model, setModel] = useState("lixsearch");
@@ -60,7 +60,10 @@ export default function ChatPage() {
                 <p className="text-sm text-neutral-400">What would you like to know?</p>
               </div>
             )}
-            {messages.map((msg) => <MessageBubble key={msg.id} message={msg} />)}
+            {messages.map((msg, i) => {
+              const isLastAssistant = msg.role === "assistant" && !msg.isStreaming && i === messages.length - 1;
+              return <MessageBubble key={msg.id} message={msg} onRetry={isLastAssistant ? retryLast : undefined} />;
+            })}
           </div>
         </div>
 
