@@ -96,7 +96,7 @@ export default function ChatInput({ onSend, onStop, isLoading, disabled, model, 
               onChange={(e) => { setText(e.target.value); autoResize(); }}
               onKeyDown={handleKeyDown}
               placeholder="Message Elixpo..."
-              disabled={disabled}
+              disabled={disabled || isLoading}
               rows={1}
               className="w-full bg-transparent outline-none text-sm text-neutral-900 placeholder:text-neutral-400 resize-none max-h-[200px]"
             />

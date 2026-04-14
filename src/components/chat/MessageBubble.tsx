@@ -55,9 +55,9 @@ function extractSources(text: string): { sources: { domain: string; url: string 
 }
 
 function renderMarkdown(text: string): string {
-  // Convert elixpo image URLs to proxied image embeds
+  // Convert elixpo image URLs to proxied image embeds (with or without .png)
   let processed = text.replace(
-    /https?:\/\/search\.elixpo\.com\/api\/image\/([a-f0-9-]+)/gi,
+    /https?:\/\/search\.elixpo\.com\/api\/image\/([a-f0-9-]+)(?:\.png)?/gi,
     (_, id) => `![Generated image](/api/image?id=${id})`
   );
   // Auto-embed standalone image URLs (png, jpg, etc.)

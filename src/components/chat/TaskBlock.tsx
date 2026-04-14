@@ -7,11 +7,12 @@ interface TaskGroupProps {
   isStreaming: boolean;
 }
 
-type TaskType = "search" | "memory" | "time" | "done" | "read" | "think" | "generic";
+type TaskType = "search" | "memory" | "time" | "done" | "read" | "think" | "image" | "generic";
 
 function detectType(text: string): TaskType {
   const lower = text.toLowerCase();
   if (lower === "done" || lower.includes("complete") || lower.includes("finished")) return "done";
+  if (lower.includes("image") || lower.includes("generat") || lower.includes("drawing") || lower.includes("illustrat") || lower.includes("photo") || lower.includes("picture")) return "image";
   if (lower.includes("search") || lower.includes("web") || lower.includes("query") || lower.includes("looking")) return "search";
   if (lower.includes("recall") || lower.includes("memory") || lower.includes("snippet") || lower.includes("context")) return "memory";
   if (lower.includes("time") || lower.includes("date") || lower.includes("local") || lower.includes("location")) return "time";
