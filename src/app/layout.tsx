@@ -4,6 +4,7 @@ import { AuthProvider } from "@/components/AuthProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import KeyboardShortcutsPanel from "@/components/KeyboardShortcutsPanel";
+import { RootLayoutClient } from "@/components/RootLayoutClient";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -66,7 +67,7 @@ export default function RootLayout({
       <body className="antialiased bg-white text-neutral-900 dark:bg-[#141A2B] dark:text-neutral-100 transition-colors">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProvider>
-            {children}
+            <RootLayoutClient>{children}</RootLayoutClient>
             <MobileBottomNav />
             <KeyboardShortcutsPanel />
           </AuthProvider>
