@@ -82,7 +82,7 @@ export function ChatSearchDialog({
         selected.scrollIntoView({ block: "nearest", behavior: "smooth" });
       }
     }
-  }, [selectedIndex]);
+  }, [selectedIndex, results.length]); // Added results.length for safety
 
   if (!isOpen) return null;
 

@@ -4,10 +4,12 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useChat } from "@/lib/chat/use-chat";
+import { useBookmarks } from "@/lib/chat/use-bookmarks";
 import MessageBubble from "@/components/chat/MessageBubble";
 import ChatInput from "@/components/chat/ChatInput";
 import ChatSidebar from "@/components/chat/ChatSidebar";
 import { ChatSearchDialog } from "@/components/chat/ChatSearchDialog";
+import { BookmarkedMessagesPanel } from "@/components/chat/BookmarkedMessagesPanel";
 import Navbar from "@/components/landing/Navbar";
 import ChatSkeleton from "@/components/skeletons/ChatSkeleton";
 
@@ -16,6 +18,7 @@ export default function ChatPage() {
   const router = useRouter();
   const { user, loading: authLoading, login } = useAuth();
   const { messages, isLoading, isLoadingHistory, sessionId, chatTitle, setChatTitle, sendMessage, stopStreaming, loadSession, retryLast } = useChat(id === "new" ? undefined : id);
+  const { toggleBookmark, isBookmarked, getBookmarkedMessages } = useBookmarks();
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -23,12 +26,14 @@ export default function ChatPage() {
   const [model, setModel] = useState("lixsearch");
   const [sharecopied, setShareCopied] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [bookmarksOpen, setBookmarksOpen] = useState(false);
+
   // Replace /chat/new with the real session ID immediately
   useEffect(() => {
     if (id === "new" && sessionId) {
       router.replace(`/chat/${sessionId}`, { scroll: false });
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [sessionId, id, router]);
 
   // Global search keyboard shortcut (Ctrl+Shift+F)
   useEffect(() => {
@@ -52,7 +57,6 @@ export default function ChatPage() {
   const prevLoading = useRef(false);
   useEffect(() => {
     if (prevLoading.current && !isLoading) {
-      // Response just finished — focus the textarea
       const textarea = document.querySelector<HTMLTextAreaElement>("textarea");
       textarea?.focus();
     }
@@ -70,7 +74,6 @@ export default function ChatPage() {
     const element = messageRefs.current[messageId];
     if (element && scrollRef.current) {
       element.scrollIntoView({ behavior: "smooth", block: "center" });
-      // Highlight the message briefly
       element.classList.add("ring-2", "ring-blue-400");
       setTimeout(() => {
         element.classList.remove("ring-2", "ring-blue-400");
@@ -79,7 +82,11 @@ export default function ChatPage() {
   };
 
   if (authLoading) {
-    return <div className="flex items-center justify-center h-screen bg-white"><div className="w-8 h-8 border-2 border-neutral-200 border-t-neutral-900 rounded-full animate-spin" /></div>;
+    return (
+      <div className="flex items-center justify-center h-screen bg-white">
+        <div className="w-8 h-8 border-2 border-neutral-200 border-t-neutral-900 rounded-full animate-spin" />
+      </div>
+    );
   }
 
   if (!user) {
@@ -98,7 +105,6 @@ export default function ChatPage() {
       <ChatSidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
 
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Search Dialog */}
         <ChatSearchDialog
           messages={messages}
           isOpen={searchOpen}
@@ -106,7 +112,14 @@ export default function ChatPage() {
           onSelectResult={handleSelectSearchResult}
         />
 
-        {/* Header */}
+        <BookmarkedMessagesPanel
+          messages={getBookmarkedMessages()}
+          isOpen={bookmarksOpen}
+          onClose={() => setBookmarksOpen(false)}
+          onRemoveBookmark={toggleBookmark}
+          onSelectMessage={handleSelectSearchResult}
+        />
+
         <header className="flex items-center justify-between px-5 py-3 bg-white/80 backdrop-blur-sm border-b border-neutral-100 flex-shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <img src="/images/logo.png" alt="" width={22} height={22} className="rounded-md flex-shrink-0 opacity-40" />
@@ -129,6 +142,21 @@ export default function ChatPage() {
                   <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
                 </svg>
                 <span className="hidden sm:inline">Search</span>
+              </button>
+            )}
+            {messages.length > 0 && (
+              <button
+                onClick={() => setBookmarksOpen(true)}
+                title="View bookmarks"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-neutral-500 hover:bg-neutral-100 transition-colors cursor-pointer relative"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                </svg>
+                <span className="hidden sm:inline">Bookmarks</span>
+                {getBookmarkedMessages().length > 0 && (
+                  <span className="absolute top-1 right-0 w-2 h-2 bg-yellow-500 rounded-full" />
+                )}
               </button>
             )}
             {sessionId && (
@@ -155,7 +183,6 @@ export default function ChatPage() {
           </div>
         </header>
 
-        {/* Messages */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-8" style={{ scrollbarWidth: "thin" }}>
           {isLoadingHistory ? (
             <ChatSkeleton />
@@ -176,9 +203,15 @@ export default function ChatPage() {
                     ref={(el) => {
                       if (el) messageRefs.current[msg.id] = el;
                     }}
+                    id={`msg-${msg.id}`}
                     className={`${msg.role === "user" ? "animate-msg-user" : "animate-msg-assistant"} rounded-lg transition-all`}
                   >
-                    <MessageBubble message={msg} onRetry={isLastAssistant ? retryLast : undefined} />
+                    <MessageBubble
+                      message={msg}
+                      onRetry={isLastAssistant ? retryLast : undefined}
+                      isBookmarked={isBookmarked(msg.id)}
+                      onToggleBookmark={() => toggleBookmark(msg)}
+                    />
                   </div>
                 );
               })}
