@@ -7,6 +7,7 @@ import { useChat } from "@/lib/chat/use-chat";
 import MessageBubble from "@/components/chat/MessageBubble";
 import ChatInput from "@/components/chat/ChatInput";
 import ChatSidebar from "@/components/chat/ChatSidebar";
+import { ChatSearchDialog } from "@/components/chat/ChatSearchDialog";
 import Navbar from "@/components/landing/Navbar";
 
 function SkeletonMessages() {
@@ -28,15 +29,30 @@ export default function ChatPage() {
   const { messages, isLoading, isLoadingHistory, sessionId, chatTitle, setChatTitle, sendMessage, stopStreaming, loadSession, retryLast } = useChat(id === "new" ? undefined : id);
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const messageRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [model, setModel] = useState("lixsearch");
   const [sharecopied, setShareCopied] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   // Replace /chat/new with the real session ID immediately
   useEffect(() => {
     if (id === "new" && sessionId) {
       router.replace(`/chat/${sessionId}`, { scroll: false });
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Global search keyboard shortcut (Ctrl+Shift+F)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "F") {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Smooth auto-scroll that follows streaming
   useEffect(() => {
@@ -61,6 +77,18 @@ export default function ChatPage() {
     setTimeout(() => setShareCopied(false), 2000);
   };
 
+  const handleSelectSearchResult = (messageId: string) => {
+    const element = messageRefs.current[messageId];
+    if (element && scrollRef.current) {
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+      // Highlight the message briefly
+      element.classList.add("ring-2", "ring-blue-400");
+      setTimeout(() => {
+        element.classList.remove("ring-2", "ring-blue-400");
+      }, 2000);
+    }
+  };
+
   if (authLoading) {
     return <div className="flex items-center justify-center h-screen bg-white"><div className="w-8 h-8 border-2 border-neutral-200 border-t-neutral-900 rounded-full animate-spin" /></div>;
   }
@@ -81,6 +109,14 @@ export default function ChatPage() {
       <ChatSidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
 
       <div className="flex-1 flex flex-col min-w-0">
+        {/* Search Dialog */}
+        <ChatSearchDialog
+          messages={messages}
+          isOpen={searchOpen}
+          onClose={() => setSearchOpen(false)}
+          onSelectResult={handleSelectSearchResult}
+        />
+
         {/* Header */}
         <header className="flex items-center justify-between px-5 py-3 bg-white/80 backdrop-blur-sm border-b border-neutral-100 flex-shrink-0">
           <div className="flex items-center gap-3 min-w-0">
@@ -94,6 +130,18 @@ export default function ChatPage() {
             />
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
+            {messages.length > 0 && (
+              <button
+                onClick={() => setSearchOpen(true)}
+                title="Search (Ctrl+Shift+F)"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-neutral-500 hover:bg-neutral-100 transition-colors cursor-pointer"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+                </svg>
+                <span className="hidden sm:inline">Search</span>
+              </button>
+            )}
             {sessionId && (
               <button
                 onClick={handleShare}
@@ -134,7 +182,13 @@ export default function ChatPage() {
               {messages.map((msg, i) => {
                 const isLastAssistant = msg.role === "assistant" && !msg.isStreaming && i === messages.length - 1;
                 return (
-                  <div key={msg.id} className={msg.role === "user" ? "animate-msg-user" : "animate-msg-assistant"}>
+                  <div
+                    key={msg.id}
+                    ref={(el) => {
+                      if (el) messageRefs.current[msg.id] = el;
+                    }}
+                    className={`${msg.role === "user" ? "animate-msg-user" : "animate-msg-assistant"} rounded-lg transition-all`}
+                  >
                     <MessageBubble message={msg} onRetry={isLastAssistant ? retryLast : undefined} />
                   </div>
                 );
