@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AuthProvider } from "@/components/AuthProvider";
+import { RootLayoutClient } from "@/components/RootLayoutClient";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -59,7 +60,11 @@ export default function RootLayout({
           href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.12/css/weather-icons.min.css"
         />
       </head>
-      <body className="antialiased"><AuthProvider>{children}</AuthProvider></body>
+      <body className="antialiased">
+        <AuthProvider>
+          <RootLayoutClient>{children}</RootLayoutClient>
+        </AuthProvider>
+      </body>
     </html>
   );
 }
