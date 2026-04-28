@@ -126,7 +126,10 @@ export default function ChatPage() {
           messages={getBookmarkedMessages()}
           isOpen={bookmarksOpen}
           onClose={() => setBookmarksOpen(false)}
-          onRemoveBookmark={toggleBookmark}
+          onRemoveBookmark={(messageId) => {
+            const msg = messages.find((m) => m.id === messageId);
+            if (msg) toggleBookmark(msg);
+          }}
           onSelectMessage={handleSelectSearchResult}
         />
 

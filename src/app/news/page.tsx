@@ -32,6 +32,11 @@ export default function NewsPage() {
 
   useEffect(() => {
     fetch("/api/news").then((r) => r.json()).then((data) => {
+      if (!data || !data.items) {
+        setItems([]);
+        setLoading(false);
+        return;
+      }
       const newsItems: NewsItem[] = Array.isArray(data.items) ? data.items : Object.values(data.items);
       setItems(newsItems);
       audioRefs.current = newsItems.map((item) => {
