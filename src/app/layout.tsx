@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
+import { Toaster } from "sonner";
 import { AuthProvider } from "@/components/AuthProvider";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import MobileBottomNav from "@/components/MobileBottomNav";
+import KeyboardShortcutsPanel from "@/components/KeyboardShortcutsPanel";
+import { RootLayoutClient } from "@/components/RootLayoutClient";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -44,7 +49,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link
           href="https://fonts.googleapis.com/css2?family=Parkinsans:wght@300..800&display=swap"
@@ -59,7 +64,16 @@ export default function RootLayout({
           href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.12/css/weather-icons.min.css"
         />
       </head>
-      <body className="antialiased"><AuthProvider>{children}</AuthProvider></body>
+      <body className="antialiased bg-white text-neutral-900 dark:bg-[#141A2B] dark:text-neutral-100 transition-colors">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <AuthProvider>
+            <RootLayoutClient>{children}</RootLayoutClient>
+            <MobileBottomNav />
+            <KeyboardShortcutsPanel />
+          </AuthProvider>
+          <Toaster position="bottom-right" richColors />
+        </ThemeProvider>
+      </body>
     </html>
   );
 }
