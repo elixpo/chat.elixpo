@@ -17,7 +17,7 @@ dist/
 wrangler.toml
 .next
 .wrangler
-.vercel
 .claude
 *.jpg
 tmp/
+.env
