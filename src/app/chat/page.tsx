@@ -77,8 +77,17 @@ export default function ChatPage() {
             ))}
             {isLoading && messages[messages.length - 1]?.role === 'user' && (
               <div className="flex items-center gap-2 text-[rgba(240,237,230,0.4)] text-[11px] font-mono uppercase tracking-widest pl-4">
-                <div className="w-1 h-1 bg-[#6366f1] animate-ping" />
-                Elixpo is typing...
+                {status === 'submitted' ? (
+                  <>
+                    <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
+                    <span>Connecting to Pollinations...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                    <span>Generating on CPU...</span>
+                  </>
+                )}
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -168,7 +177,7 @@ export default function ChatPage() {
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="shrink-0 w-10 h-10 flex items-center justify-center bg-[#6366f1] text-[#f0ede6] disabled:opacity-20 disabled:cursor-not-allowed hover:bg-[#5b5bd6] transition-colors shadow-lg"
+                className="shrink-0 flex items-center justify-center w-10 h-10 bg-gradient-to-br from-violet-600 to-blue-500 text-white shadow-[0_0_16px_rgba(139,92,246,0.35)] hover:shadow-[0_0_24px_rgba(139,92,246,0.55)] hover:from-violet-500 hover:to-blue-400 active:scale-[0.95] transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
                 title="Send message"
                 style={{ clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))' }}
               >
@@ -185,7 +194,7 @@ export default function ChatPage() {
       {/* Footer text */}
       <div className="shrink-0 p-4 w-full">
         <p className="text-center text-[10px] font-mono tracking-[0.1em] uppercase text-[rgba(240,237,230,0.25)]">
-          Elixpo AI can make mistakes. Consider checking important information.
+          Powered by Pollinations · Running on CPU
         </p>
       </div>
     </div>

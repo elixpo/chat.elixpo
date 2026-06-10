@@ -221,10 +221,9 @@ export default function ChatInput({ onSend, onStop, isLoading, disabled, model, 
               <button
                 onClick={handleSend}
                 disabled={disabled || (!isLoading && !text.trim() && !images.length)}
-                className={`p-2 rounded-lg flex-shrink-0 transition-all cursor-pointer ${
+                className={`flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-200 active:scale-[0.95] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer ${
                   isLoading ? "bg-red-500 hover:bg-red-600 text-white"
-                    : text.trim() || images.length ? "bg-neutral-900 hover:bg-neutral-800 text-white"
-                    : "bg-neutral-200 text-neutral-400 cursor-not-allowed"
+                    : "bg-gradient-to-br from-violet-600 to-blue-500 hover:from-violet-500 hover:to-blue-400 text-white shadow-[0_0_16px_rgba(139,92,246,0.35)] hover:shadow-[0_0_24px_rgba(139,92,246,0.55)]"
                 }`}
               >
                 {isLoading ? (
@@ -239,7 +238,7 @@ export default function ChatInput({ onSend, onStop, isLoading, disabled, model, 
           </div>
         </div>
 
-        <p className="text-[10px] text-neutral-400 text-center mt-2">Powered by lixSearch</p>
+        <p className="text-[10px] text-neutral-400 text-center mt-2">Powered by Pollinations · Running on CPU</p>
       </div>
     </div>
   );

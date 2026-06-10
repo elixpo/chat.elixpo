@@ -5,6 +5,7 @@ import { useMemo, useState, useEffect, memo } from "react";
 import { toast } from "sonner";
 import TaskGroup from "./TaskBlock";
 import { BookmarkButton } from "./BookmarkButton";
+import PollinationsBadge from "./PollinationsBadge";
 import type { DisplayMessage } from "@/lib/chat/use-chat";
 
 marked.setOptions({ breaks: true, gfm: true });
@@ -171,6 +172,17 @@ const MessageBubble = memo(function MessageBubble({ message, onRetry, isBookmark
   // Assistant message — left/center, no bubble bg
   return (
     <div className="max-w-3xl">
+      {/* Identity row */}
+      <div className="flex items-center gap-2 mb-2">
+        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-violet-500 to-blue-600 flex items-center justify-center">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+            <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" />
+          </svg>
+        </div>
+        <span className="text-xs font-medium text-neutral-500">Elixpo Chat</span>
+        <PollinationsBadge />
+      </div>
+
       {/* Task group — single collapsible header for all tasks */}
       {message.taskBlocks && message.taskBlocks.length > 0 && (
         <TaskGroup tasks={message.taskBlocks} isStreaming={!!message.isStreaming} />
@@ -191,16 +203,18 @@ const MessageBubble = memo(function MessageBubble({ message, onRetry, isBookmark
           dangerouslySetInnerHTML={{ __html: html || "" }}
         />
       ) : message.isStreaming && !(message.taskBlocks && message.taskBlocks.length > 0) ? (
-        <div className="flex gap-1.5 py-2">
-          <span className="w-2 h-2 rounded-full bg-neutral-300 animate-bounce" style={{ animationDelay: "0ms" }} />
-          <span className="w-2 h-2 rounded-full bg-neutral-300 animate-bounce" style={{ animationDelay: "150ms" }} />
-          <span className="w-2 h-2 rounded-full bg-neutral-300 animate-bounce" style={{ animationDelay: "300ms" }} />
+        <div className="flex items-center gap-2 text-xs text-neutral-500 py-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
+          <span>Connecting to Pollinations...</span>
         </div>
       ) : null}
 
-      {/* Streaming cursor */}
+      {/* Streaming state */}
       {message.isStreaming && message.content && (
-        <span className="inline-block w-0.5 h-4 bg-neutral-500 animate-pulse rounded-full align-text-bottom" />
+        <div className="flex items-center gap-2 text-xs text-neutral-500 mt-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+          <span>Generating on CPU...</span>
+        </div>
       )}
 
       {/* Artifact cards */}

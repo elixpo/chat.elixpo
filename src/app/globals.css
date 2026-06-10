@@ -100,6 +100,12 @@
   --color-cpu-border: rgba(245, 158, 11, 0.25);
   --color-cpu-muted: rgba(245, 158, 11, 0.08);
 
+  /* Pollinations Chat */
+  --color-pollinations: #7C3AED;
+  --color-pollinations-glow: rgba(124, 58, 237, 0.15);
+  --color-pollinations-border: rgba(124, 58, 237, 0.25);
+  --color-pollinations-muted: rgba(124, 58, 237, 0.08);
+
   /* Gradients */
   --gradient-brand: linear-gradient(135deg, #1D4ED8 0%, #0EA5E9 50%, #06B6D4 100%);
   --gradient-surface: linear-gradient(180deg, rgba(59,130,246,0.03) 0%, transparent 100%);
