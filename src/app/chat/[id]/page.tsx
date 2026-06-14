@@ -19,7 +19,9 @@ export default function ChatPage() {
   const router = useRouter();
   const { user, loading: authLoading, login } = useAuth();
   
-  const [sessionId] = useState(() => id === "new" ? crypto.randomUUID().slice(0, 11) : id);
+  const [sessionId, setSessionId] = useState(
+    id === "new" ? undefined : id
+  );
   const [chatTitle, setChatTitle] = useState("");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [model, setModel] = useState("openai");
@@ -27,19 +29,21 @@ export default function ChatPage() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [bookmarksOpen, setBookmarksOpen] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-
   const { messages, sendMessage, stop, status, setMessages, regenerate } = useChat({
-    id: sessionId,
-    transport: new DefaultChatTransport({
-      api: "/api/chat",
-      body: { model, id: sessionId },
-    }),
-    onFinish: () => {
-      if (id === "new") {
-        window.history.replaceState(null, "", `/chat/${sessionId}`);
+  id: sessionId ?? "new",
+  transport: new DefaultChatTransport({
+    api: "/api/chat",
+    body: { model, id: sessionId },
+    fetch: async (url, options) => {
+      const res = await fetch(url, options);
+      const convId = res.headers.get("x-conversation-id");
+      if (convId && convId !== sessionId) {
+        setSessionId(convId);
       }
-    }
-  });
+      return res;
+    },
+  }),
+});
 
   const isLoading = status === "streaming" || status === "submitted";
 
