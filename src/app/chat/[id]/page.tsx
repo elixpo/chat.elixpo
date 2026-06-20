@@ -14,6 +14,20 @@ import { BookmarkedMessagesPanel } from "@/components/chat/BookmarkedMessagesPan
 import ChatSkeleton from "@/components/skeletons/ChatSkeleton";
 import PollinationsBadge from "@/components/chat/PollinationsBadge";
 
+
+function SkeletonMessages() {
+  return (
+    <div className="max-w-3xl mx-auto space-y-6 animate-pulse">
+      {[1, 2, 3, 4].map((i) => (
+        <div key={i} className={`flex ${i % 2 === 1 ? "justify-end" : "justify-start"}`}>
+          <div className={`rounded-2xl ${i % 2 === 1 ? "bg-neutral-100 w-48" : "bg-neutral-50 w-80"} h-12`} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+
 export default function ChatPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
