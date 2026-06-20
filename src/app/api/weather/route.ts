@@ -4,8 +4,6 @@ import { getCached, setCache } from "@/lib/kv";
 import type { WeatherResponse } from "@/lib/types";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-export const runtime = "edge";
-
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -34,7 +32,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { env } = await getCloudflareContext();
-    const token = env.POLLINATIONS_TOKEN || "fEWo70t94146ZYgk";
+    const token = (env as any).POLLINATIONS_TOKEN || "fEWo70t94146ZYgk";
 
     const aiSummary = await generateAISummary(structuredWeather, token);
     const aiImageLink = generateAIImage(structuredWeather.current.condition, token);

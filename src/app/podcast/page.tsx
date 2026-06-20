@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
+import PodcastSkeleton from "@/components/skeletons/PodcastSkeleton";
 
 interface TimelineEntry {
   type: "male" | "female" | "image";
@@ -46,7 +47,7 @@ export default function PodcastPage() {
   const displayImage = activeCarouselUrl || bannerUrl || thumbnailUrl;
 
   useEffect(() => {
-    fetch("/api/podcast").then((r) => r.json()).then((data) => {
+    fetch("/api/podcast").then((r) => r.json()).then((data: any) => {
       if (data.error) return;
       setPodcastName(data.podcast_name);
       setBannerUrl(data.podcast_banner_url || "");
@@ -67,11 +68,11 @@ export default function PodcastPage() {
       setLoaded(true);
     }).catch(console.error);
 
-    fetch("/api/podcast-details").then((r) => r.json()).then((d) => {
+    fetch("/api/podcast-details").then((r) => r.json()).then((d: any) => {
       if (d.gradientColor) setGradientColor(d.gradientColor);
       if (d.carouselImages) setCarouselImages(d.carouselImages);
       if (d.timeline?.length) setTimeline(d.timeline);
-      else if (d.timelineUrl) fetch(d.timelineUrl).then((r) => r.json()).then(setTimeline).catch(() => {});
+      else if (d.timelineUrl) fetch(d.timelineUrl).then((r) => r.json()).then((timelineData: any) => setTimeline(timelineData)).catch(() => {});
     }).catch(() => {});
 
     return () => { if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ""; } };
@@ -156,6 +157,10 @@ export default function PodcastPage() {
       return { text: chunks[idx], speaker: entry.type as "male" | "female", start: entry.start, end: entry.end };
     });
   }, [currentTime, timeline]);
+
+  if (!loaded) {
+    return <PodcastSkeleton />;
+  }
 
   return (
     <section className="relative h-screen w-screen overflow-hidden bg-black">

@@ -4,9 +4,7 @@
 /.open-next
 /.wrangler
 .dev.vars
-.env
 .env.local
-.env.production
 *.wav
 *.mp3
 *.tldr
@@ -15,10 +13,11 @@
 .DS_Store
 build/
 dist/
-wrangler.toml
 .next
 .wrangler
-.vercel
-.claude
+.claude/settings.local.json
+.claude/.credentials
 *.jpg
 tmp/
+.env
+tsconfig.tsbuildinfo

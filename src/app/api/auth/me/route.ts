@@ -1,9 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { parseSessionCookie, getUserInfo, refreshTokens, setSessionCookie } from "@/lib/auth";
 
-export const runtime = "edge";
-
 export async function GET(request: NextRequest) {
+  // Dev mode: return a mock user so the UI works without real SSO
+  if (process.env.DEV_SKIP_AUTH === "true") {
+    return NextResponse.json({
+      user: {
+        id: "dev-user-local",
+        email: "dev@elixpo.local",
+        displayName: "Dev User",
+        isAdmin: true,
+        provider: "local",
+        emailVerified: true,
+      },
+    });
+  }
+
   const session = parseSessionCookie(request.headers.get("cookie"));
   if (!session) {
     return NextResponse.json({ user: null }, { status: 401 });
