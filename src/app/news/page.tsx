@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import type { NewsItem, TimelineEntry } from "@/lib/types";
+import NewsSkeleton from "@/components/skeletons/NewsSkeleton";
 
 const CATEGORY_COLORS: Record<string, string> = {
   tech: "#f59e0b", science: "#10b981", sports: "#3b82f6", health: "#ef4444",
@@ -30,7 +31,12 @@ export default function NewsPage() {
   const headline = `Elixpo Daily — ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`;
 
   useEffect(() => {
-    fetch("/api/news").then((r) => r.json()).then((data) => {
+    fetch("/api/news").then((r) => r.json()).then((data: any) => {
+      if (!data || !data.items) {
+        setItems([]);
+        setLoading(false);
+        return;
+      }
       const newsItems: NewsItem[] = Array.isArray(data.items) ? data.items : Object.values(data.items);
       setItems(newsItems);
       audioRefs.current = newsItems.map((item) => {
@@ -55,7 +61,7 @@ export default function NewsPage() {
     } else if (item.image_url) {
       fetch(`/api/dominant-color?imageUrl=${encodeURIComponent(item.image_url)}`)
         .then((r) => r.json())
-        .then((d) => setGradientColor(d.color))
+        .then((d: any) => setGradientColor(d.color))
         .catch(() => {});
     }
   }, []);
@@ -171,6 +177,10 @@ export default function NewsPage() {
   const thumbnailImage = currentItem?.thumbnail_url || "";
   const sourceDomain = (() => { try { return new URL(currentItem?.source_link || "").hostname.replace(/^www\./, ""); } catch { return ""; } })();
   const faviconUrl = sourceDomain ? `https://www.google.com/s2/favicons?domain=${sourceDomain}&sz=64` : "";
+
+  if (loading) {
+    return <NewsSkeleton />;
+  }
 
   return (
     <section className="relative h-screen w-screen overflow-hidden bg-black">

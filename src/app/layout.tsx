@@ -45,22 +45,30 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link
-          href="https://fonts.googleapis.com/css2?family=Parkinsans:wght@300..800&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Instrument+Serif&display=swap"
           rel="stylesheet"
-        />
-        <link
-          href="https://fonts.googleapis.com/css?family=Nunito+Sans"
-          rel="stylesheet"
-        />
-        <link
-          rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.12/css/weather-icons.min.css"
         />
       </head>
       <body className="antialiased"><AuthProvider>{children}</AuthProvider><Toaster position="bottom-right" richColors /></body>
+      <body className="antialiased">
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+        <Toaster
+          position="bottom-right"
+          richColors
+          toastOptions={{
+            style: {
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border-subtle)',
+              color: 'var(--text-primary)',
+            },
+          }}
+        />
+      </body>
     </html>
   );
 }
