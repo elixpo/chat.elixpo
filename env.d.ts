@@ -23,6 +23,7 @@ declare global {
       NEXT_PUBLIC_ELIXPO_ACCOUNTS_CLIENT_ID?: string;
       NEXT_PUBLIC_ELIXPO_ACCOUNTS_BASE_URL?: string;
       ELIXPO_OAUTH_CLIENT_SECRET?: string;
+      DEV_SKIP_AUTH?: string;
     }
   }
 }
